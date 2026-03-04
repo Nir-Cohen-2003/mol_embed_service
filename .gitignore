@@ -1,2 +1,8 @@
 **/__pycache__/**
 .pixi/
+build/
+dist/
+**.whl
+**.conda
+**.lock
+**.egg-info/
