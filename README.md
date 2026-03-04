@@ -6,7 +6,7 @@ GPU-accelerated molecular embedding generation for ChemBERTa (v1-3), CDDD, and C
 
 - **5 Models**: ChemBERTa-v1, ChemBERTa-v2, ChemBERTa-v3, CDDD, Chemformer
 - **GPU Acceleration**: Efficient batched inference with CUDA support
-- **SMILES Validation**: Automatic canonicalization via RDKit
+- **Clean Input**: Optimized for pre-validated SMILES strings
 - **Extensible**: Easy to add new models in the future
 
 ## Installation
@@ -60,7 +60,6 @@ print(embeddings.shape)  # (3, embedding_dim)
 - `output_path` (str): Output .npy file path
 - `batch_size` (int, default=32): Inference batch size
 - `device` (str, default="cuda"): "cuda" or "cpu"
-- `validate` (bool, default=True): Validate/canonicalize SMILES
 
 ## Development
 

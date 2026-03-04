@@ -3,7 +3,6 @@
 from typing import List, Literal
 from pathlib import Path
 import numpy as np
-from rdkit import Chem
 from .models import ChemBERTaEmbedder, CDDDEmbedder, ChemformerEmbedder
 
 
@@ -16,32 +15,12 @@ ModelType = Literal[
 ]
 
 
-def validate_smiles(smiles_list: List[str]) -> List[str]:
-    """Validate and canonicalize SMILES strings using RDKit.
-
-    Args:
-        smiles_list: List of SMILES strings
-
-    Returns:
-        List of canonicalized SMILES (invalid ones replaced with empty string)
-    """
-    canonical = []
-    for smi in smiles_list:
-        mol = Chem.MolFromSmiles(smi)
-        if mol is not None:
-            canonical.append(Chem.MolToSmiles(mol))
-        else:
-            canonical.append("")  # Placeholder for invalid SMILES
-    return canonical
-
-
 def embed_smiles(
     smiles_list: List[str],
     model: ModelType,
     output_path: str,
     batch_size: int = 32,
     device: str = "cuda",
-    validate: bool = True
 ) -> None:
     """Generate molecular embeddings and save to .npy file.
 
@@ -51,7 +30,6 @@ def embed_smiles(
         output_path: Path to save embeddings (.npy file)
         batch_size: Batch size for inference (default: 32)
         device: Device to use ('cuda' or 'cpu', default: 'cuda')
-        validate: Whether to validate and canonicalize SMILES (default: True)
 
     Raises:
         ValueError: If invalid model type or empty SMILES list
@@ -68,13 +46,6 @@ def embed_smiles(
     # Ensure output directory exists
     output_file = Path(output_path)
     output_file.parent.mkdir(parents=True, exist_ok=True)
-
-    # Validate and canonicalize SMILES
-    if validate:
-        print(f"Validating {len(smiles_list)} SMILES strings...")
-        smiles_list = validate_smiles(smiles_list)
-        valid_count = sum(1 for s in smiles_list if s)
-        print(f"Valid SMILES: {valid_count}/{len(smiles_list)}")
 
     # Select and initialize model
     print(f"Initializing {model} on {device}...")
