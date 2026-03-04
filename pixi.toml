@@ -5,9 +5,22 @@ description = "Efficient GPU-accelerated molecular embedding service"
 authors = ["Nir Cohen nircoh@weizmann.ac.il"]
 channels = ["conda-forge"]
 platforms = ["linux-64"]
+preview = ["pixi-build"]
+
+[package]
+name = "mol-embed-service"
+version = "0.1.0"
+
+[package.build]
+backend = { name = "pixi-build-python", version = "*" }
+
+[package.host-dependencies]
+setuptools = ">=61.0"
+wheel = "*"
+
 [system-requirements]
 cuda = "12.0"
-[dependencies]
+[package.run-dependencies]
 python = ">=3.10,<3.14"
 pytorch = ">=2.1"
 pytorch-gpu = "*"
@@ -26,7 +39,18 @@ default = ["dev"]
 pytest = ">=7.4"
 ruff = ">=0.1"
 pyrefly ="*"
+twine = "*"
+python-build="*"
+setuptools ="*"
 [tasks]
 test = "pytest tests/"
 lint = "ruff check mol_embed_service/"
 check = "pyrefly check mol_embed_service/"
+build-all = {cmd="python -m build --wheel --sdist --outdir dist",depends-on = ["clean_dist"]}
+clean_dist = "rm -rf dist || true"
+
+publish-testpypi = {cmd="twine upload --repository testpypi --skip-existing dist/*", depends-on = ["build-all"]}
+publish-pypi = {cmd="twine upload --repository pypi --skip-existing dist/*", depends-on = ["build-all"]}
+
+publish-prefix = {cmd="rattler-build upload prefix --channel nir-cohen"}
+publish-anaconda = {cmd="rattler-build upload anaconda --owner Nir_Cohen --channel main"}

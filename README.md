@@ -53,6 +53,8 @@ print(embeddings.shape)  # (3, embedding_dim)
 | `cddd` | ONNX | 512 | Continuous descriptors |
 | `chemformer` | MoLFormer-XL | 768 | Transformer encoder |
 
+> **Note**: If you use the `cddd` model, ensure `cddd-onnx` is included in your environment (it is included in the default package dependencies).
+
 ### Parameters
 
 - `smiles_list` (List[str]): SMILES strings to embed

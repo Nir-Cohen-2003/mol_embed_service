@@ -6,10 +6,18 @@ build-backend = "setuptools.build_meta"
 name = "mol-embed-service"
 version = "0.1.0"
 description = "Efficient GPU-accelerated molecular embedding service for ChemBERTa, CDDD, and Chemformer"
-authors = [{name = "Nir Cohen", email = "your.email@example.com"}]
+authors = [{name = "Nir Cohen", email = "nircoh@weizmann.ac.il"}]
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
+dependencies = [
+    "torch>=2.1",
+    "transformers>=4.35",
+    "rdkit>=2023.9.1",
+    "numpy>=1.24",
+    "sentencepiece>=0.1.99",
+    "cddd-onnx>=0.1.0"
+]
 
 [project.optional-dependencies]
 dev = ["pytest>=7.4", "black>=23.0", "ruff>=0.1"]
