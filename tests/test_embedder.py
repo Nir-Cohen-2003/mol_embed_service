@@ -14,6 +14,13 @@ SAMPLE_SMILES = [
     "CN1C=NC2=C1C(=O)N(C)C(=O)N2C",  # Caffeine (Canonical)
 ]
 
+EDGE_CASE_SMILES = [
+    "", # Empty string
+    "C", # Very short
+    "CC", # Very short
+    "invalid_smiles_that_will_fail", # Bad SMILES
+    "CCO", # valid one to ensure mixed batching works
+]
 
 @pytest.mark.parametrize(
     "model, expected_dim",
@@ -23,6 +30,7 @@ SAMPLE_SMILES = [
         ("chemberta-v3", 384),
         ("cddd", 512),
         ("chemformer", 384),
+        ("molformer", 768),
     ],
 )
 def test_all_models_embedding_and_saving(model, expected_dim, tmp_path):
@@ -52,12 +60,57 @@ def test_all_models_embedding_and_saving(model, expected_dim, tmp_path):
     assert not np.isnan(embeddings).any(), f"NaNs found in {model} embeddings"
 
 
+@pytest.mark.parametrize(
+    "model, expected_dim",
+    [
+        ("chemberta-v1", 768),
+        ("chemberta-v2", 384),
+        ("cddd", 512),
+        ("chemformer", 384),
+        ("molformer", 768),
+    ],
+)
+def test_edge_cases_embedding(model, expected_dim, tmp_path):
+    """Test how models handle empty strings, invalid SMILES, and very small molecules."""
+    output_path = tmp_path / f"test_edge_{model}.npy"
+
+    embed_smiles(
+        smiles_list=EDGE_CASE_SMILES,
+        model=model,
+        output_path=str(output_path),
+        batch_size=2,
+        device="cpu",
+    )
+
+    assert output_path.exists()
+    embeddings = np.load(output_path)
+
+    # Verify shape aligns with input exactly
+    assert embeddings.shape == (len(EDGE_CASE_SMILES), expected_dim)
+    assert not np.isnan(embeddings).any(), f"NaNs found in {model} edge cases"
+
+
 @pytest.mark.skipif(not torch.cuda.is_available(), reason="CUDA not available")
 @pytest.mark.parametrize(
-    "model", ["chemberta-v1", "chemberta-v2", "chemberta-v3", "cddd", "chemformer"]
+    "model", ["chemberta-v1", "chemberta-v2", "chemberta-v3", "cddd", "chemformer", "molformer"]
 )
 def test_gpu_embedding(model, tmp_path):
     output_path = tmp_path / f"test_gpu_{model}.npy"
+    
+    # Verify the model correctly loads onto the GPU explicitly
+    from mol_embed_service.models import ChemBERTaEmbedder, CDDDEmbedder, ChemformerEmbedder, MolformerEmbedder
+    if model.startswith("chemberta"):
+        embedder = ChemBERTaEmbedder(version=model, device="cuda")
+        assert next(embedder.model.parameters()).device.type == "cuda", f"{model} PyTorch model is NOT on GPU"
+    elif model == "cddd":
+        embedder = CDDDEmbedder(device="cuda")
+        assert "CUDAExecutionProvider" in embedder.model.encoder_session.get_providers(), "CDDD ONNX model is NOT using GPU Execution Provider"
+    elif model == "chemformer":
+        embedder = ChemformerEmbedder(device="cuda")
+        assert next(embedder.model.parameters()).device.type == "cuda", "Chemformer PyTorch model is NOT on GPU"
+    elif model == "molformer":
+        embedder = MolformerEmbedder(device="cuda")
+        assert next(embedder.model.parameters()).device.type == "cuda", "Molformer PyTorch model is NOT on GPU"
 
     embed_smiles(
         smiles_list=SAMPLE_SMILES,

@@ -3,7 +3,7 @@
 from typing import List, Literal
 from pathlib import Path
 import numpy as np
-from .models import ChemBERTaEmbedder, CDDDEmbedder, ChemformerEmbedder
+from .models import ChemBERTaEmbedder, CDDDEmbedder, ChemformerEmbedder, MolformerEmbedder
 
 
 ModelType = Literal[
@@ -11,7 +11,8 @@ ModelType = Literal[
     "chemberta-v2",
     "chemberta-v3",
     "cddd",
-    "chemformer"
+    "chemformer",
+    "molformer"
 ]
 
 
@@ -55,10 +56,12 @@ def embed_smiles(
         embedder = CDDDEmbedder(device=device)
     elif model == "chemformer":
         embedder = ChemformerEmbedder(device=device)
+    elif model == "molformer":
+        embedder = MolformerEmbedder(device=device)
     else:
         raise ValueError(
             f"Unknown model: {model}. "
-            f"Must be one of: chemberta-v1, chemberta-v2, chemberta-v3, cddd, chemformer"
+            f"Must be one of: chemberta-v1, chemberta-v2, chemberta-v3, cddd, chemformer, molformer"
         )
 
     # Generate embeddings
