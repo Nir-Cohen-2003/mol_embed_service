@@ -1,6 +1,6 @@
 """Main embedding API implementation."""
 
-from typing import List, Literal
+from typing import List, Literal, get_args
 from pathlib import Path
 import numpy as np
 from .models import ChemBERTaEmbedder, CDDDEmbedder, ChemformerEmbedder, MolformerEmbedder
@@ -14,6 +14,54 @@ ModelType = Literal[
     "chemformer",
     "molformer"
 ]
+
+EmbeddingDim = Literal[768, 512, 384]
+
+#: Mapping of model types to their embedding dimensions.
+#:
+#: .. code-block:: python
+#:
+#:     {
+#:         "chemberta-v1": 768,
+#:         "chemberta-v2": 384,
+#:         "chemberta-v3": 384,
+#:         "cddd": 512,
+#:         "chemformer": 384,
+#:         "molformer": 768,
+#:     }
+EMBEDDING_SIZES: dict[ModelType, EmbeddingDim] = {
+    "chemberta-v1": 768,
+    "chemberta-v2": 384,
+    "chemberta-v3": 384,
+    "cddd": 512,
+    "chemformer": 384,
+    "molformer": 768,
+}
+
+
+def get_embedding_size(model: ModelType) -> EmbeddingDim:
+    """Get the embedding dimension for a given model.
+
+    Args:
+        model: Model type identifier.
+
+    Returns:
+        int: Embedding dimension size.
+
+    Raises:
+        ValueError: If model type is unknown.
+
+    Example:
+        >>> from mol_embed_service import get_embedding_size
+        >>> get_embedding_size("chemberta-v1")
+        768
+        >>> get_embedding_size("cddd")
+        512
+    """
+    if model not in EMBEDDING_SIZES:
+        valid_models = ", ".join(get_args(ModelType))
+        raise ValueError(f"Unknown model: {model}. Must be one of: {valid_models}")
+    return EMBEDDING_SIZES[model]
 
 
 def embed_smiles(

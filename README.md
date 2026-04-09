@@ -4,8 +4,9 @@ GPU-accelerated molecular embedding generation for ChemBERTa (v1-3), CDDD, and C
 
 ## Features
 
-- **5 Models**: ChemBERTa-v1, ChemBERTa-v2, ChemBERTa-v3, CDDD, Chemformer
+- **6 Models**: ChemBERTa-v1, ChemBERTa-v2, ChemBERTa-v3, CDDD, Chemformer, MolFormer
 - **GPU Acceleration**: Efficient batched inference with CUDA support
+- **Embedding Size API**: Query dimensions programmatically via `EMBEDDING_SIZES` and `get_embedding_size()`
 - **Clean Input**: Optimized for pre-validated SMILES strings
 - **Extensible**: Easy to add new models in the future
 
@@ -32,7 +33,7 @@ smiles_list = ["CCO", "c1ccccc1", "CC(=O)O"]
 # Generate embeddings
 embed_smiles(
     smiles_list=smiles_list,
-    model="chemberta-v1",  # or v2, v3, cddd, chemformer
+    model="chemberta-v1",  # or v2, v3, cddd, chemformer, molformer
     output_path="embeddings.npy",
     batch_size=32,
     device="cuda"
@@ -47,11 +48,32 @@ print(embeddings.shape)  # (3, embedding_dim)
 
 | Model | Version | Embedding Dim | Notes |
 |-------|---------|---------------|-------|
-| `chemberta-v1` | ZINC base | 384 | Original ChemBERTa |
+| `chemberta-v1` | ZINC base | 768 | Original ChemBERTa |
 | `chemberta-v2` | 77M MLM | 384 | Masked Language Model |
 | `chemberta-v3` | 77M MTR | 384 | Multi-task Regression |
 | `cddd` | ONNX | 512 | Continuous descriptors |
-| `chemformer` | MoLFormer-XL | 768 | Transformer encoder |
+| `chemformer` | ChemBERTa-v3 | 384 | Transformer encoder |
+| `molformer` | MoLFormer-XL | 768 | Transformer encoder |
+
+### Embedding Size API
+
+You can query embedding dimensions programmatically without instantiating models:
+
+```python
+from mol_embed_service import EMBEDDING_SIZES, get_embedding_size
+
+# Access all embedding sizes
+print(EMBEDDING_SIZES)
+# {'chemberta-v1': 768, 'chemberta-v2': 384, ...}
+
+# Get dimension for a specific model
+dim = get_embedding_size("chemberta-v1")
+print(dim)  # 768
+
+# Use for pre-allocating arrays or validation
+import numpy as np
+embeddings = np.zeros((num_molecules, get_embedding_size("cddd")))
+```
 
 > **Note**: If you use the `cddd` model, ensure `cddd-onnx` is included in your environment (it is included in the default package dependencies).
 
