@@ -29,8 +29,8 @@ EDGE_CASE_SMILES = [
         ("chemberta-v2", 384),
         ("chemberta-v3", 384),
         ("cddd", 512),
-        ("chemformer", 384),
         ("molformer", 768),
+        ("chemeleon", 2048),
     ],
 )
 def test_all_models_embedding_and_saving(model, expected_dim, tmp_path):
@@ -66,8 +66,8 @@ def test_all_models_embedding_and_saving(model, expected_dim, tmp_path):
         ("chemberta-v1", 768),
         ("chemberta-v2", 384),
         ("cddd", 512),
-        ("chemformer", 384),
         ("molformer", 768),
+        ("chemeleon", 2048),
     ],
 )
 def test_edge_cases_embedding(model, expected_dim, tmp_path):
@@ -92,25 +92,25 @@ def test_edge_cases_embedding(model, expected_dim, tmp_path):
 
 @pytest.mark.skipif(not torch.cuda.is_available(), reason="CUDA not available")
 @pytest.mark.parametrize(
-    "model", ["chemberta-v1", "chemberta-v2", "chemberta-v3", "cddd", "chemformer", "molformer"]
+    "model", ["chemberta-v1", "chemberta-v2", "chemberta-v3", "cddd", "molformer", "chemeleon"]
 )
 def test_gpu_embedding(model, tmp_path):
     output_path = tmp_path / f"test_gpu_{model}.npy"
     
     # Verify the model correctly loads onto the GPU explicitly
-    from mol_embed_service.models import ChemBERTaEmbedder, CDDDEmbedder, ChemformerEmbedder, MolformerEmbedder
+    from mol_embed_service.models import ChemBERTaEmbedder, CDDDEmbedder, MolformerEmbedder, CheMeleonEmbedder
     if model.startswith("chemberta"):
         embedder = ChemBERTaEmbedder(version=model, device="cuda")
         assert next(embedder.model.parameters()).device.type == "cuda", f"{model} PyTorch model is NOT on GPU"
     elif model == "cddd":
         embedder = CDDDEmbedder(device="cuda")
         assert "CUDAExecutionProvider" in embedder.model.encoder_session.get_providers(), "CDDD ONNX model is NOT using GPU Execution Provider"
-    elif model == "chemformer":
-        embedder = ChemformerEmbedder(device="cuda")
-        assert next(embedder.model.parameters()).device.type == "cuda", "Chemformer PyTorch model is NOT on GPU"
     elif model == "molformer":
         embedder = MolformerEmbedder(device="cuda")
         assert next(embedder.model.parameters()).device.type == "cuda", "Molformer PyTorch model is NOT on GPU"
+    elif model == "chemeleon":
+        embedder = CheMeleonEmbedder(device="cuda")
+        assert next(embedder.model.model.parameters()).device.type == "cuda", "CheMeleon PyTorch model is NOT on GPU"
 
     embed_smiles(
         smiles_list=SAMPLE_SMILES,

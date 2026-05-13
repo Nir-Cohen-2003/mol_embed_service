@@ -3,7 +3,7 @@
 from typing import List, Literal, get_args
 from pathlib import Path
 import numpy as np
-from .models import ChemBERTaEmbedder, CDDDEmbedder, ChemformerEmbedder, MolformerEmbedder
+from .models import ChemBERTaEmbedder, CDDDEmbedder, MolformerEmbedder, CheMeleonEmbedder
 
 
 ModelType = Literal[
@@ -11,11 +11,11 @@ ModelType = Literal[
     "chemberta-v2",
     "chemberta-v3",
     "cddd",
-    "chemformer",
-    "molformer"
+    "molformer",
+    "chemeleon",
 ]
 
-EmbeddingDim = Literal[768, 512, 384]
+EmbeddingDim = Literal[768, 512, 384, 2048]
 
 #: Mapping of model types to their embedding dimensions.
 #:
@@ -26,16 +26,16 @@ EmbeddingDim = Literal[768, 512, 384]
 #:         "chemberta-v2": 384,
 #:         "chemberta-v3": 384,
 #:         "cddd": 512,
-#:         "chemformer": 384,
 #:         "molformer": 768,
+#:         "chemeleon": 2048,
 #:     }
 EMBEDDING_SIZES: dict[ModelType, EmbeddingDim] = {
     "chemberta-v1": 768,
     "chemberta-v2": 384,
     "chemberta-v3": 384,
     "cddd": 512,
-    "chemformer": 384,
     "molformer": 768,
+    "chemeleon": 2048,
 }
 
 
@@ -102,14 +102,14 @@ def embed_smiles(
         embedder = ChemBERTaEmbedder(version=model, device=device)
     elif model == "cddd":
         embedder = CDDDEmbedder(device=device)
-    elif model == "chemformer":
-        embedder = ChemformerEmbedder(device=device)
     elif model == "molformer":
         embedder = MolformerEmbedder(device=device)
+    elif model == "chemeleon":
+        embedder = CheMeleonEmbedder(device=device)
     else:
         raise ValueError(
             f"Unknown model: {model}. "
-            f"Must be one of: chemberta-v1, chemberta-v2, chemberta-v3, cddd, chemformer, molformer"
+            f"Must be one of: chemberta-v1, chemberta-v2, chemberta-v3, cddd, molformer, chemeleon"
         )
 
     # Generate embeddings

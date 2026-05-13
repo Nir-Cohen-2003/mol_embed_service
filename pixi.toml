@@ -61,3 +61,4 @@ publish-anaconda = {cmd="rattler-build upload anaconda --owner Nir_Cohen --chann
 [dependencies]
 sympy = ">=1.14.0,<2"
 gmpy2 = "==2.2.1"
+chemprop = ">=2.2.0"

@@ -209,41 +209,42 @@ class MolformerEmbedder(BaseEmbedder):
         return np.vstack(embeddings)
 
 
-class ChemformerEmbedder(BaseEmbedder):
-    """Chemformer-style embedder using MoLFormer."""
+class CheMeleonEmbedder(BaseEmbedder):
+    """CheMeleon embedder using ChemProp MPNN."""
 
-    MODEL_NAME = "DeepChem/ChemBERTa-77M-MTR"  # Use ChemBERTa-v3 as a reliable fallback
+    EMBEDDING_DIM = 2048
 
     def __init__(self, device: str = "cuda"):
         super().__init__(device)
-        self.tokenizer = AutoTokenizer.from_pretrained(self.MODEL_NAME, trust_remote_code=True)
-        self.model = AutoModel.from_pretrained(
-            self.MODEL_NAME, 
-            trust_remote_code=True,
-            # Workaround for transformers.onnx missing in some versions
-            # and model type mismatch
-        ).to(self.device)
-        self.model.eval()
+        from .chemeleon_fingerprint import CheMeleonFingerprint
+
+        self.model = CheMeleonFingerprint(device=self.device)
 
     def embed(self, smiles_list: List[str], batch_size: int) -> np.ndarray:
-        """Generate embeddings from MoLFormer hidden states."""
+        """Generate CheMeleon embeddings (2048-dimensional)."""
         embeddings = []
 
-        with torch.no_grad():
-            for i in tqdm.tqdm(range(0, len(smiles_list), batch_size), desc=f"Embedding with {self.__class__.__name__}"):
-                batch = smiles_list[i:i + batch_size]
-                # MoLFormer uses its own tokenizer logic
-                inputs = self.tokenizer(
-                    batch,
-                    padding=True,
-                    truncation=True,
-                    max_length=512,
-                    return_tensors="pt"
-                ).to(self.device)
+        for i in tqdm.tqdm(range(0, len(smiles_list), batch_size), desc=f"Embedding with {self.__class__.__name__}"):
+            batch = smiles_list[i:i + batch_size]
+            valid_indices = []
+            valid_smiles = []
 
-                outputs = self.model(**inputs)
-                # Mean pooling over sequence length
-                batch_embeddings = outputs.last_hidden_state.mean(dim=1).cpu().numpy()
-                embeddings.append(batch_embeddings)
+            for j, s in enumerate(batch):
+                from rdkit import Chem
+                mol = Chem.MolFromSmiles(s) if s else None
+                if mol is not None:
+                    valid_indices.append(j)
+                    valid_smiles.append(s)
+
+            batch_embeddings = np.zeros((len(batch), self.EMBEDDING_DIM), dtype=np.float32)
+
+            if valid_smiles:
+                emb = self.model(valid_smiles)
+                for idx, valid_idx in enumerate(valid_indices):
+                    batch_embeddings[valid_idx] = emb[idx]
+
+            embeddings.append(batch_embeddings)
 
         return np.vstack(embeddings)
+
+

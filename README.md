@@ -1,10 +1,10 @@
 # Molecular Embedding Service
 
-GPU-accelerated molecular embedding generation for ChemBERTa (v1-3), CDDD, and Chemformer.
+GPU-accelerated molecular embedding generation for ChemBERTa (v1-3), CDDD, and MolFormer.
 
 ## Features
 
-- **6 Models**: ChemBERTa-v1, ChemBERTa-v2, ChemBERTa-v3, CDDD, Chemformer, MolFormer
+- **5 Models**: ChemBERTa-v1, ChemBERTa-v2, ChemBERTa-v3, CDDD, MolFormer
 - **GPU Acceleration**: Efficient batched inference with CUDA support
 - **Embedding Size API**: Query dimensions programmatically via `EMBEDDING_SIZES` and `get_embedding_size()`
 - **Clean Input**: Optimized for pre-validated SMILES strings
@@ -26,14 +26,14 @@ pixi shell
 
 ### Python API
 
-from mol_embed_service import embed_smiles
+from mol_embed_service import embed_smiles, ModelType, EmbeddingDim
 
 smiles_list = ["CCO", "c1ccccc1", "CC(=O)O"]
 
 # Generate embeddings
 embed_smiles(
     smiles_list=smiles_list,
-    model="chemberta-v1",  # or v2, v3, cddd, chemformer, molformer
+    model="chemberta-v1",  # or v2, v3, cddd, molformer
     output_path="embeddings.npy",
     batch_size=32,
     device="cuda"
@@ -52,8 +52,9 @@ print(embeddings.shape)  # (3, embedding_dim)
 | `chemberta-v2` | 77M MLM | 384 | Masked Language Model |
 | `chemberta-v3` | 77M MTR | 384 | Multi-task Regression |
 | `cddd` | ONNX | 512 | Continuous descriptors |
-| `chemformer` | ChemBERTa-v3 | 384 | Transformer encoder |
 | `molformer` | MoLFormer-XL | 768 | Transformer encoder |
+
+> **Note on Embedding Dimensions**: The vector size is determined by the underlying pretrained model weights and is **not user-configurable**. ChemBERTa-v1 and MoLFormer output 768-dim vectors, CDDD outputs 512-dim vectors, and ChemBERTa-v2/v3 output 384-dim vectors. The library exports `ModelType` and `EmbeddingDim` type aliases for static type checking.
 
 ### Embedding Size API
 

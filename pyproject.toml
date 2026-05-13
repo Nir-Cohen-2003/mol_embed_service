@@ -16,7 +16,8 @@ dependencies = [
     "rdkit>=2023.9.1",
     "numpy>=1.24",
     "sentencepiece>=0.1.99",
-    "cddd-onnx>=0.1.0"
+    "cddd-onnx>=0.1.0",
+    "chemprop>=2.2.0"
 ]
 
 [project.optional-dependencies]
