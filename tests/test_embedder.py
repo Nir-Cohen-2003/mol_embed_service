@@ -31,6 +31,8 @@ EDGE_CASE_SMILES = [
         ("cddd", 512),
         ("molformer", 768),
         ("chemeleon", 2048),
+        ("mist-1.8B", 2304),
+        ("mist-28M", 512),
     ],
 )
 def test_all_models_embedding_and_saving(model, expected_dim, tmp_path):
@@ -68,6 +70,8 @@ def test_all_models_embedding_and_saving(model, expected_dim, tmp_path):
         ("cddd", 512),
         ("molformer", 768),
         ("chemeleon", 2048),
+        ("mist-1.8B", 2304),
+        ("mist-28M", 512),
     ],
 )
 def test_edge_cases_embedding(model, expected_dim, tmp_path):
@@ -92,13 +96,14 @@ def test_edge_cases_embedding(model, expected_dim, tmp_path):
 
 @pytest.mark.skipif(not torch.cuda.is_available(), reason="CUDA not available")
 @pytest.mark.parametrize(
-    "model", ["chemberta-v1", "chemberta-v2", "chemberta-v3", "cddd", "molformer", "chemeleon"]
+    "model", ["chemberta-v1", "chemberta-v2", "chemberta-v3", "cddd", "molformer", "chemeleon", "mist-1.8B", "mist-28M"]
 )
 def test_gpu_embedding(model, tmp_path):
     output_path = tmp_path / f"test_gpu_{model}.npy"
-    
+
     # Verify the model correctly loads onto the GPU explicitly
-    from mol_embed_service.models import ChemBERTaEmbedder, CDDDEmbedder, MolformerEmbedder, CheMeleonEmbedder
+    import gc
+    from mol_embed_service.models import ChemBERTaEmbedder, CDDDEmbedder, MolformerEmbedder, CheMeleonEmbedder, MistEmbedder
     if model.startswith("chemberta"):
         embedder = ChemBERTaEmbedder(version=model, device="cuda")
         assert next(embedder.model.parameters()).device.type == "cuda", f"{model} PyTorch model is NOT on GPU"
@@ -111,6 +116,15 @@ def test_gpu_embedding(model, tmp_path):
     elif model == "chemeleon":
         embedder = CheMeleonEmbedder(device="cuda")
         assert next(embedder.model.model.parameters()).device.type == "cuda", "CheMeleon PyTorch model is NOT on GPU"
+    elif model.startswith("mist"):
+        embedder = MistEmbedder(version=model, device="cuda")
+        assert next(embedder.model.parameters()).device.type == "cuda", f"{model} PyTorch model is NOT on GPU"
+
+    # Free the test embedder before embed_smiles creates another one,
+    # to avoid OOM with large models like MIST-1.8B
+    del embedder
+    gc.collect()
+    torch.cuda.empty_cache()
 
     embed_smiles(
         smiles_list=SAMPLE_SMILES,

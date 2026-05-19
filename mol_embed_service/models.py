@@ -248,3 +248,79 @@ class CheMeleonEmbedder(BaseEmbedder):
         return np.vstack(embeddings)
 
 
+class MistEmbedder(BaseEmbedder):
+    """MIST (Molecular Insight SMILES Transformer) embedder."""
+
+    MODEL_NAMES = {
+        "mist-1.8B": "mist-models/mist-1.8B-dh61satt",
+        "mist-28M": "mist-models/mist-28M-ti624ev1",
+    }
+
+    EMBEDDING_DIMS = {
+        "mist-1.8B": 2304,
+        "mist-28M": 512,
+    }
+
+    def __init__(self, version: str = "mist-1.8B", device: str = "cuda"):
+        super().__init__(device)
+        model_name = self.MODEL_NAMES.get(version)
+        if not model_name:
+            raise ValueError(f"Unknown MIST version: {version}")
+
+        self.version = version
+        self.embedding_dim = self.EMBEDDING_DIMS[version]
+
+        # Import SmirkTokenizerFast so AutoTokenizer can resolve it
+        from smirk import SmirkTokenizerFast  # noqa: F401
+        self.tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
+        self.model = AutoModel.from_pretrained(model_name, trust_remote_code=True).to(self.device)
+        self.model.eval()
+
+    @staticmethod
+    def _kekulize(smiles: str) -> Optional[str]:
+        from rdkit import Chem
+        mol = Chem.MolFromSmiles(smiles) if smiles else None
+        if mol is None:
+            return None
+        Chem.Kekulize(mol)
+        return Chem.MolToSmiles(mol, kekuleSmiles=True)
+
+    def embed(self, smiles_list: List[str], batch_size: int) -> np.ndarray:
+        """Generate MIST embeddings using [CLS] token of last hidden state."""
+        embeddings = []
+
+        with torch.no_grad():
+            for i in tqdm.tqdm(range(0, len(smiles_list), batch_size), desc=f"Embedding with {self.__class__.__name__}({self.version})"):
+                batch = smiles_list[i:i + batch_size]
+                valid_indices = []
+                valid_smiles = []
+
+                for j, s in enumerate(batch):
+                    k = self._kekulize(s)
+                    if k is not None:
+                        valid_indices.append(j)
+                        valid_smiles.append(k)
+
+                batch_embeddings = np.zeros((len(batch), self.embedding_dim), dtype=np.float32)
+
+                if valid_smiles:
+                    inputs = self.tokenizer(
+                        valid_smiles,
+                        padding=True,
+                        truncation=True,
+                        max_length=512,
+                        return_tensors="pt"
+                    ).to(self.device)
+
+                    outputs = self.model(**inputs)
+                    # Extract [CLS] / first-token embedding
+                    cls_embeddings = outputs.last_hidden_state[:, 0, :].cpu().numpy()
+
+                    for idx, valid_idx in enumerate(valid_indices):
+                        batch_embeddings[valid_idx] = cls_embeddings[idx]
+
+                embeddings.append(batch_embeddings)
+
+        return np.vstack(embeddings)
+
+

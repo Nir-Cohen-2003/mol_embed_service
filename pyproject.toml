@@ -12,12 +12,13 @@ requires-python = ">=3.10"
 license = {text = "MIT"}
 dependencies = [
     "torch>=2.1",
-    "transformers>=4.35,<4.40.0",
+    "transformers>=4.40,<5",
     "rdkit>=2023.9.1",
     "numpy>=1.24",
     "sentencepiece>=0.1.99",
     "cddd-onnx>=0.1.0",
-    "chemprop>=2.2.0"
+    "chemprop>=2.2.0",
+    "smirk>=0.1.0",
 ]
 
 [project.optional-dependencies]

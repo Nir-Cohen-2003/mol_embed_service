@@ -31,7 +31,7 @@ class CheMeleonFingerprint:
     Automatically downloads model weights from Zenodo on first use.
     """
 
-    _CKPT_URL = "https://zenodo.org/records/15460715/files/chemeleon_mp.pt"
+    _CKPT_URL = "https://zenodo.org/records/15460715/files/chemeleon_mp.pt?download=1"
 
     def __init__(
         self,

@@ -24,7 +24,7 @@ cuda = "12.0"
 python = ">=3.10,<3.14"
 pytorch = ">=2.1"
 pytorch-gpu = "*"
-transformers = ">=4.35,<4.40.0"
+transformers = ">=4.40,<5"
 rdkit = ">=2023.09"
 numpy = ">=1.24"
 sentencepiece = ">=0.1.99"
@@ -33,6 +33,7 @@ sentencepiece = ">=0.1.99"
 cddd-onnx = ">=0.1.0"
 onnxruntime-gpu = ">=1.24.3, <2"
 gmpy2 = "*"
+smirk = ">=0.1.0"
 
 [environments]
 default = ["dev"]
