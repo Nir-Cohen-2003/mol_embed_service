@@ -1,11 +1,17 @@
 """Model wrapper classes for different embedding models."""
 
+import sys
 from typing import List, Optional
 from abc import ABC, abstractmethod
 import torch
 import numpy as np
 import tqdm
 from transformers import AutoTokenizer, AutoModel, AutoModelForSeq2SeqLM
+
+
+def _in_interactive_terminal() -> bool:
+    """Return True if stderr is attached to an interactive terminal."""
+    return sys.stderr.isatty()
 
 
 class BaseEmbedder(ABC):
@@ -48,7 +54,7 @@ class ChemBERTaEmbedder(BaseEmbedder):
         embeddings = []
 
         with torch.no_grad():
-            for i in tqdm.tqdm(range(0, len(smiles_list), batch_size), desc=f"Embedding with {self.__class__.__name__}"):
+            for i in tqdm.tqdm(range(0, len(smiles_list), batch_size), desc=f"Embedding with {self.__class__.__name__}", disable=not _in_interactive_terminal()):
                 batch = smiles_list[i:i + batch_size]
                 inputs = self.tokenizer(
                     batch,
@@ -130,7 +136,7 @@ class CDDDEmbedder(BaseEmbedder):
         
         final_embeddings = np.zeros((len(smiles_list), 512), dtype=np.float32)
 
-        for i in tqdm.tqdm(range(0, len(smiles_list), batch_size), desc=f"Embedding with {self.__class__.__name__}"):
+        for i in tqdm.tqdm(range(0, len(smiles_list), batch_size), desc=f"Embedding with {self.__class__.__name__}", disable=not _in_interactive_terminal()):
             batch = smiles_list[i:i + batch_size]
             valid_indices = []
             valid_smiles = []
@@ -187,7 +193,7 @@ class MolformerEmbedder(BaseEmbedder):
         embeddings = []
 
         with torch.no_grad():
-            for i in tqdm.tqdm(range(0, len(smiles_list), batch_size), desc=f"Embedding with {self.__class__.__name__}"):
+            for i in tqdm.tqdm(range(0, len(smiles_list), batch_size), desc=f"Embedding with {self.__class__.__name__}", disable=not _in_interactive_terminal()):
                 batch = smiles_list[i:i + batch_size]
                 inputs = self.tokenizer(
                     batch,
@@ -224,7 +230,7 @@ class CheMeleonEmbedder(BaseEmbedder):
         """Generate CheMeleon embeddings (2048-dimensional)."""
         embeddings = []
 
-        for i in tqdm.tqdm(range(0, len(smiles_list), batch_size), desc=f"Embedding with {self.__class__.__name__}"):
+        for i in tqdm.tqdm(range(0, len(smiles_list), batch_size), desc=f"Embedding with {self.__class__.__name__}", disable=not _in_interactive_terminal()):
             batch = smiles_list[i:i + batch_size]
             valid_indices = []
             valid_smiles = []
@@ -290,7 +296,7 @@ class MistEmbedder(BaseEmbedder):
         embeddings = []
 
         with torch.no_grad():
-            for i in tqdm.tqdm(range(0, len(smiles_list), batch_size), desc=f"Embedding with {self.__class__.__name__}({self.version})"):
+            for i in tqdm.tqdm(range(0, len(smiles_list), batch_size), desc=f"Embedding with {self.__class__.__name__}({self.version})", disable=not _in_interactive_terminal()):
                 batch = smiles_list[i:i + batch_size]
                 valid_indices = []
                 valid_smiles = []
