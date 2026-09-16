@@ -1,13 +1,13 @@
 # Molecular Embedding Service
 
-GPU-accelerated molecular embedding generation for ChemBERTa (v1-3), CDDD, MolFormer, CheMeleon, and MIST.
+GPU-accelerated molecular embedding generation for ChemBERTa (v1-3), CDDD, MolFormer, CheMeleon, MIST, and Mol-JEPA.
 
 ## Features
 
-- **7 Models**: ChemBERTa-v1, ChemBERTa-v2, ChemBERTa-v3, CDDD, MolFormer, CheMeleon, MIST (1.8B & 28M)
+- **9 selectable models**: ChemBERTa-v1, ChemBERTa-v2, ChemBERTa-v3, CDDD, MolFormer, CheMeleon, MIST (1.8B & 28M), and Mol-JEPA
 - **GPU Acceleration**: Efficient batched inference with CUDA support
 - **Embedding Size API**: Query dimensions programmatically via `EMBEDDING_SIZES` and `get_embedding_size()`
-- **Clean Input**: Optimized for pre-validated SMILES strings
+- **Mol-JEPA input handling**: Empty or malformed SMILES receive aligned zero rows; Mol-JEPA errors for valid molecules propagate
 - **Extensible**: Easy to add new models in the future
 
 ## Installation
@@ -33,7 +33,7 @@ smiles_list = ["CCO", "c1ccccc1", "CC(=O)O"]
 # Generate embeddings
 embed_smiles(
     smiles_list=smiles_list,
-    model="chemberta-v1",  # or v2, v3, cddd, molformer, chemeleon, mist-1.8B, mist-28M
+    model="chemberta-v1",  # or v2, v3, cddd, molformer, chemeleon, mist-1.8B, mist-28M, mol-jepa
     output_path="embeddings.npy",
     batch_size=32,
     device="cuda"
@@ -56,8 +56,9 @@ print(embeddings.shape)  # (3, embedding_dim)
 | `chemeleon` | ChemProp MPNN | 2048 | Learned MPNN fingerprints |
 | `mist-1.8B` | MIST 1.8B | 2304 | RoBERTa-PreLayerNorm encoder |
 | `mist-28M` | MIST 28M | 512 | Lightweight MIST encoder |
+| `mol-jepa` | Flogrammer/Mol-JEPA | 512 | Documented CLS representation |
 
-> **Note on Embedding Dimensions**: The vector size is determined by the underlying pretrained model weights and is **not user-configurable**. ChemBERTa-v1 and MoLFormer output 768-dim vectors, CDDD outputs 512-dim vectors, ChemBERTa-v2/v3 output 384-dim vectors, CheMeleon outputs 2048-dim vectors, MIST-1.8B outputs 2304-dim vectors, and MIST-28M outputs 512-dim vectors. The library exports `ModelType` and `EmbeddingDim` type aliases for static type checking.
+> **Note on Embedding Dimensions**: The vector size is determined by the underlying pretrained model weights and is **not user-configurable**. ChemBERTa-v1 and MoLFormer output 768-dim vectors, CDDD outputs 512-dim vectors, ChemBERTa-v2/v3 output 384-dim vectors, CheMeleon outputs 2048-dim vectors, MIST-1.8B outputs 2304-dim vectors, MIST-28M outputs 512-dim vectors, and Mol-JEPA returns its 512-dimensional `out.cls` representation (not 5125). The library exports `ModelType` and `EmbeddingDim` type aliases for static type checking.
 
 ### Embedding Size API
 
@@ -82,6 +83,10 @@ embeddings = np.zeros((num_molecules, get_embedding_size("cddd")))
 > **Note**: If you use the `cddd` model, ensure `cddd-onnx` is included in your environment (it is included in the default package dependencies).
 >
 > **Note**: If you use the `mist-1.8B` or `mist-28M` models, the `smirk` package is required (included by default). Building `smirk` requires a Rust compiler. Install Rust from [rust-lang.org](https://www.rust-lang.org/tools/install) before installing this package if `smirk` wheels are not available for your platform.
+>
+> **Note on Mol-JEPA**: Mol-JEPA is downloaded on first use through the Hugging Face cache (about 182 MB). This service loads `Flogrammer/Mol-JEPA` with pinned remote code at revision `4c912b450175f31b5ba913a5dc921c03b27b985a` and uses the official project's [512-dimensional CLS output](https://huggingface.co/Flogrammer/Mol-JEPA/blob/4c912b450175f31b5ba913a5dc921c03b27b985a/README.md). The exact immutable weight URL is [`model.safetensors`](https://huggingface.co/Flogrammer/Mol-JEPA/resolve/4c912b450175f31b5ba913a5dc921c03b27b985a/model.safetensors). It requires `transformers>=4.50.3`, `torch-geometric`, `molfeat`, and `safetensors`; custom code execution is required. For Mol-JEPA, empty or malformed SMILES are zero-filled while errors for RDKit-valid molecules are propagated.
+>
+> Mol-JEPA is from [Boehringer-Ingelheim/mol-jepa](https://github.com/Boehringer-Ingelheim/mol-jepa) and is licensed **CC BY-NC 4.0** ([model card/license](https://huggingface.co/Flogrammer/Mol-JEPA/blob/4c912b450175f31b5ba913a5dc921c03b27b985a/README.md)). The package source remains MIT, but that does not cover the checkpoint or override its terms. Release/deployment requires compliance with the model terms, and commercial use requires separate authorization.
 
 ### Parameters
 
@@ -95,9 +100,6 @@ embeddings = np.zeros((num_molecules, get_embedding_size("cddd")))
 
 # Run tests
 pixi run test
-
-# Format code
-pixi run format
 
 # Lint
 pixi run lint

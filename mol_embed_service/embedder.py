@@ -3,7 +3,14 @@
 from typing import List, Literal, get_args
 from pathlib import Path
 import numpy as np
-from .models import ChemBERTaEmbedder, CDDDEmbedder, MolformerEmbedder, CheMeleonEmbedder, MistEmbedder
+from .models import (
+    ChemBERTaEmbedder,
+    CDDDEmbedder,
+    MolformerEmbedder,
+    CheMeleonEmbedder,
+    MistEmbedder,
+    MolJEPAEmbedder,
+)
 
 
 ModelType = Literal[
@@ -15,6 +22,7 @@ ModelType = Literal[
     "chemeleon",
     "mist-1.8B",
     "mist-28M",
+    "mol-jepa",
 ]
 
 EmbeddingDim = Literal[768, 512, 384, 2048, 2304]
@@ -32,6 +40,7 @@ EmbeddingDim = Literal[768, 512, 384, 2048, 2304]
 #:         "chemeleon": 2048,
 #:         "mist-1.8B": 2304,
 #:         "mist-28M": 512,
+#:         "mol-jepa": 512,
 #:     }
 EMBEDDING_SIZES: dict[ModelType, EmbeddingDim] = {
     "chemberta-v1": 768,
@@ -42,6 +51,7 @@ EMBEDDING_SIZES: dict[ModelType, EmbeddingDim] = {
     "chemeleon": 2048,
     "mist-1.8B": 2304,
     "mist-28M": 512,
+    "mol-jepa": 512,
 }
 
 
@@ -114,10 +124,12 @@ def embed_smiles(
         embedder = CheMeleonEmbedder(device=device)
     elif model.startswith("mist"):
         embedder = MistEmbedder(version=model, device=device)
+    elif model == "mol-jepa":
+        embedder = MolJEPAEmbedder(device=device)
     else:
         raise ValueError(
             f"Unknown model: {model}. "
-            f"Must be one of: chemberta-v1, chemberta-v2, chemberta-v3, cddd, molformer, chemeleon, mist-1.8B, mist-28M"
+            f"Must be one of: chemberta-v1, chemberta-v2, chemberta-v3, cddd, molformer, chemeleon, mist-1.8B, mist-28M, mol-jepa"
         )
 
     # Generate embeddings

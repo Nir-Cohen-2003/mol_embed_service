@@ -33,6 +33,7 @@ EDGE_CASE_SMILES = [
         ("chemeleon", 2048),
         ("mist-1.8B", 2304),
         ("mist-28M", 512),
+        pytest.param("mol-jepa", 512, id="mol_jepa"),
     ],
 )
 def test_all_models_embedding_and_saving(model, expected_dim, tmp_path):
@@ -57,9 +58,11 @@ def test_all_models_embedding_and_saving(model, expected_dim, tmp_path):
     # Verify it's a valid numpy array
     assert isinstance(embeddings, np.ndarray)
     assert embeddings.dtype in [np.float32, np.float64]
+    if model == "mol-jepa":
+        assert embeddings.dtype == np.float32
 
     # All models must return valid numbers
-    assert not np.isnan(embeddings).any(), f"NaNs found in {model} embeddings"
+    assert np.isfinite(embeddings).all(), f"Non-finite values found in {model} embeddings"
 
 
 @pytest.mark.parametrize(
@@ -72,6 +75,7 @@ def test_all_models_embedding_and_saving(model, expected_dim, tmp_path):
         ("chemeleon", 2048),
         ("mist-1.8B", 2304),
         ("mist-28M", 512),
+        pytest.param("mol-jepa", 512, id="mol_jepa"),
     ],
 )
 def test_edge_cases_embedding(model, expected_dim, tmp_path):
@@ -91,19 +95,41 @@ def test_edge_cases_embedding(model, expected_dim, tmp_path):
 
     # Verify shape aligns with input exactly
     assert embeddings.shape == (len(EDGE_CASE_SMILES), expected_dim)
-    assert not np.isnan(embeddings).any(), f"NaNs found in {model} edge cases"
+    assert np.isfinite(embeddings).all(), f"Non-finite values found in {model} edge cases"
+    if model == "mol-jepa":
+        assert embeddings.dtype == np.float32
+        assert np.array_equal(embeddings[0], np.zeros(expected_dim, dtype=np.float32))
+        assert np.array_equal(embeddings[3], np.zeros(expected_dim, dtype=np.float32))
 
 
 @pytest.mark.skipif(not torch.cuda.is_available(), reason="CUDA not available")
 @pytest.mark.parametrize(
-    "model", ["chemberta-v1", "chemberta-v2", "chemberta-v3", "cddd", "molformer", "chemeleon", "mist-1.8B", "mist-28M"]
+    "model",
+    [
+        "chemberta-v1",
+        "chemberta-v2",
+        "chemberta-v3",
+        "cddd",
+        "molformer",
+        "chemeleon",
+        "mist-1.8B",
+        "mist-28M",
+        pytest.param("mol-jepa", id="mol_jepa"),
+    ],
 )
 def test_gpu_embedding(model, tmp_path):
     output_path = tmp_path / f"test_gpu_{model}.npy"
 
     # Verify the model correctly loads onto the GPU explicitly
     import gc
-    from mol_embed_service.models import ChemBERTaEmbedder, CDDDEmbedder, MolformerEmbedder, CheMeleonEmbedder, MistEmbedder
+    from mol_embed_service.models import (
+        ChemBERTaEmbedder,
+        CDDDEmbedder,
+        MolformerEmbedder,
+        CheMeleonEmbedder,
+        MistEmbedder,
+        MolJEPAEmbedder,
+    )
     if model.startswith("chemberta"):
         embedder = ChemBERTaEmbedder(version=model, device="cuda")
         assert next(embedder.model.parameters()).device.type == "cuda", f"{model} PyTorch model is NOT on GPU"
@@ -119,6 +145,9 @@ def test_gpu_embedding(model, tmp_path):
     elif model.startswith("mist"):
         embedder = MistEmbedder(version=model, device="cuda")
         assert next(embedder.model.parameters()).device.type == "cuda", f"{model} PyTorch model is NOT on GPU"
+    elif model == "mol-jepa":
+        embedder = MolJEPAEmbedder(device="cuda")
+        assert next(embedder.model.parameters()).device.type == "cuda", "Mol-JEPA PyTorch model is NOT on GPU"
 
     # Free the test embedder before embed_smiles creates another one,
     # to avoid OOM with large models like MIST-1.8B
@@ -137,7 +166,10 @@ def test_gpu_embedding(model, tmp_path):
     assert output_path.exists()
     embeddings = np.load(output_path)
     assert embeddings.shape[0] == len(SAMPLE_SMILES)
-    assert not np.isnan(embeddings).any(), f"NaNs found in {model} GPU embeddings"
+    if model == "mol-jepa":
+        assert embeddings.shape == (len(SAMPLE_SMILES), 512)
+        assert embeddings.dtype == np.float32
+    assert np.isfinite(embeddings).all(), f"Non-finite values found in {model} GPU embeddings"
 
 
 def test_embed_smiles_empty_list():

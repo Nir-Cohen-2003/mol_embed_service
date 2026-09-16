@@ -254,6 +254,68 @@ class CheMeleonEmbedder(BaseEmbedder):
         return np.vstack(embeddings)
 
 
+class MolJEPAEmbedder(BaseEmbedder):
+    """Mol-JEPA CLS embeddings from the pinned Hugging Face checkpoint.
+
+    Empty or malformed SMILES receive zero rows so output remains aligned with
+    the input. Errors raised while processing RDKit-valid molecules propagate
+    to the caller rather than being silently converted to zero rows.
+    """
+
+    MODEL_NAME = "Flogrammer/Mol-JEPA"
+    MODEL_REVISION = "4c912b450175f31b5ba913a5dc921c03b27b985a"
+    EMBEDDING_DIM = 512
+
+    def __init__(self, device: str = "cuda"):
+        super().__init__(device)
+        self.model = AutoModel.from_pretrained(
+            self.MODEL_NAME,
+            revision=self.MODEL_REVISION,
+            trust_remote_code=True,
+        ).to(self.device)
+        self.model.eval()
+
+    def embed(self, smiles_list: list[str], batch_size: int) -> np.ndarray:
+        """Generate row-aligned 512-dimensional ``out.cls`` embeddings."""
+        from rdkit import Chem
+
+        embeddings = []
+        with torch.no_grad():
+            for i in tqdm.tqdm(
+                range(0, len(smiles_list), batch_size),
+                desc=f"Embedding with {self.__class__.__name__}",
+                disable=not _in_interactive_terminal(),
+            ):
+                batch = smiles_list[i:i + batch_size]
+                valid_indices = []
+                valid_smiles = []
+                for j, smiles in enumerate(batch):
+                    mol = Chem.MolFromSmiles(smiles) if smiles else None
+                    if mol is not None and mol.GetNumAtoms() > 0:
+                        valid_indices.append(j)
+                        valid_smiles.append(smiles)
+
+                batch_embeddings = np.zeros(
+                    (len(batch), self.EMBEDDING_DIM), dtype=np.float32
+                )
+                if valid_smiles:
+                    output = self.model(valid_smiles)
+                    cls = output.cls.detach().cpu().numpy()
+                    expected_shape = (len(valid_smiles), self.EMBEDDING_DIM)
+                    if cls.shape != expected_shape:
+                        raise ValueError(
+                            "Mol-JEPA out.cls has shape "
+                            f"{cls.shape}; expected {expected_shape}"
+                        )
+                    cls = cls.astype(np.float32, copy=False)
+                    for row, valid_idx in enumerate(valid_indices):
+                        batch_embeddings[valid_idx] = cls[row]
+
+                embeddings.append(batch_embeddings)
+
+        return np.vstack(embeddings)
+
+
 class MistEmbedder(BaseEmbedder):
     """MIST (Molecular Insight SMILES Transformer) embedder."""
 

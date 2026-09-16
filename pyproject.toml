@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mol-embed-service"
-version = "0.1.0"
+version = "0.2.0"
 description = "Efficient GPU-accelerated molecular embedding service for ChemBERTa, CDDD, and Chemformer"
 authors = [{name = "Nir Cohen", email = "nircoh@weizmann.ac.il"}]
 readme = "README.md"
@@ -12,13 +12,16 @@ requires-python = ">=3.10"
 license = {text = "MIT"}
 dependencies = [
     "torch>=2.1",
-    "transformers>=4.40,<5",
+    "transformers>=4.50.3,<5",
     "rdkit>=2023.9.1",
     "numpy>=1.24",
     "sentencepiece>=0.1.99",
     "cddd-onnx>=0.1.0",
     "chemprop>=2.2.0",
     "smirk>=0.1.0",
+    "torch-geometric",
+    "molfeat",
+    "safetensors",
 ]
 
 [project.optional-dependencies]
