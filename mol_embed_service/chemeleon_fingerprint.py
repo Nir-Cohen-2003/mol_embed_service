@@ -14,7 +14,7 @@ from chemprop.nn import RegressionFFN
 from rdkit.Chem import Mol, MolFromSmiles
 
 CHEMELEON_TARGET_SEMANTIC_VERSION = "chemeleon-mean-aggregation-v1"
-CHEMELEON_SERVICE_VERSION = "0.1.0"
+CHEMELEON_SERVICE_VERSION = "0.2.0"
 
 
 def resolve_checkpoint_provenance(checkpoint_path: Union[str, Path]) -> dict[str, str]:

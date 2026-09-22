@@ -302,7 +302,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/urllib3-2.7.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/xarray-2026.7.0-pyhc364b38_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/zipp-4.1.0-pyhcf101f3_0.conda
-      - conda_source: mol-embed-service[3910669e] @ .
+      - conda_source: mol-embed-service[18320beb] @ .
       - pypi: https://files.pythonhosted.org/packages/04/4b/29cac41a4d98d144bf5f6d33995617b185d14b22401f75ca86f384e87ff1/h11-0.16.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/04/8f/d2f3f532616be4d06c316ef119683e832bd3d41e112bf3a88f4151c95b17/rpds_py-2026.6.3-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/04/e1/1db9ecfb9f22a71624413ee158b933c18538aacfde77acbb7413cea21a6e/gcsfs-2026.8.1-py3-none-any.whl
@@ -389,7 +389,6 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/9a/93/242e2eab5fe682ffcb8b0084bde703a41d51e17ee0f3a31ff0d9d813620a/jedi-0.20.0-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/9e/51/17023c0f8f1869d8806b979a2bffa3f861f26a3f1a66b094288323fba52f/rfc3986_validator-0.1.1-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/9e/6a/a83720e953b1682d2d109d3c2dbb0bc9bf28cc1cbc205be4ef4be5da709d/jsonpointer-3.1.1-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/9e/80/d96143329dbe925d434b016c890a5caa785fac8e14a1570e5d6818b63545/onnxruntime_gpu-1.30.0-cp312-cp312-manylinux_2_28_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/9e/c3/059298687310d527a58bb01f3b1965787ee3b40dce76752eda8b44e9a2c5/pexpect-4.9.0-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/a0/bf/258cd7c0a7ed92745dc93c31666d462d05b702807a689744bd49fb833bde/grpcio-1.84.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/a9/c5/97c6f622497c809645a978135647270b2d08a6053db1e9fa3dca11818ac3/cddd_onnx-0.1.0-py3-none-any.whl
@@ -712,7 +711,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/urllib3-2.7.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/xarray-2026.7.0-pyhc364b38_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/zipp-4.1.0-pyhcf101f3_0.conda
-      - conda_source: mol-embed-service[3910669e] @ .
+      - conda_source: mol-embed-service[18320beb] @ .
       - pypi: https://files.pythonhosted.org/packages/04/4b/29cac41a4d98d144bf5f6d33995617b185d14b22401f75ca86f384e87ff1/h11-0.16.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/04/8f/d2f3f532616be4d06c316ef119683e832bd3d41e112bf3a88f4151c95b17/rpds_py-2026.6.3-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/04/e1/1db9ecfb9f22a71624413ee158b933c18538aacfde77acbb7413cea21a6e/gcsfs-2026.8.1-py3-none-any.whl
@@ -799,7 +798,6 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/9a/93/242e2eab5fe682ffcb8b0084bde703a41d51e17ee0f3a31ff0d9d813620a/jedi-0.20.0-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/9e/51/17023c0f8f1869d8806b979a2bffa3f861f26a3f1a66b094288323fba52f/rfc3986_validator-0.1.1-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/9e/6a/a83720e953b1682d2d109d3c2dbb0bc9bf28cc1cbc205be4ef4be5da709d/jsonpointer-3.1.1-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/9e/80/d96143329dbe925d434b016c890a5caa785fac8e14a1570e5d6818b63545/onnxruntime_gpu-1.30.0-cp312-cp312-manylinux_2_28_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/9e/c3/059298687310d527a58bb01f3b1965787ee3b40dce76752eda8b44e9a2c5/pexpect-4.9.0-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/a0/bf/258cd7c0a7ed92745dc93c31666d462d05b702807a689744bd49fb833bde/grpcio-1.84.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/a9/c5/97c6f622497c809645a978135647270b2d08a6053db1e9fa3dca11818ac3/cddd_onnx-0.1.0-py3-none-any.whl
@@ -855,9 +853,6 @@ packages:
   - openmp_impl <0.0a0
   license: BSD-3-Clause
   license_family: BSD
-  run_exports:
-    strong:
-    - _openmp_mutex >=4.5
   size: 28948
   timestamp: 1770939786096
 - conda: https://conda.anaconda.org/conda-forge/linux-64/_openmp_mutex-4.5-8_kmp_llvm.conda
@@ -2168,6 +2163,7 @@ packages:
   - libgcc-ng ==16.2.0=*_5
   - libgomp 16.2.0 he0feb66_5
   license: GPL-3.0-only WITH GCC-exception-3.1
+  license_family: GPL
   purls: []
   run_exports: {}
   size: 1057064
@@ -2234,9 +2230,7 @@ packages:
   depends:
   - __glibc >=2.17,<3.0.a0
   license: GPL-3.0-only WITH GCC-exception-3.1
-  run_exports:
-    strong:
-    - _openmp_mutex >=4.5
+  license_family: GPL
   size: 641644
   timestamp: 1789485759120
 - conda: https://conda.anaconda.org/conda-forge/linux-64/libharfbuzz-14.4.0-h23af247_1.conda
@@ -2388,7 +2382,6 @@ packages:
   - libgcc >=14
   license: BSD-2-Clause
   license_family: BSD
-  run_exports: {}
   size: 92759
   timestamp: 1786650399772
 - conda: https://conda.anaconda.org/conda-forge/linux-64/libnl-3.11.0-hb03c661_1.conda
@@ -2529,7 +2522,6 @@ packages:
   - libgcc >=15
   - libstdcxx >=15
   license: Python-2.0
-  run_exports: {}
   size: 10520530
   timestamp: 1788383918299
 - conda: https://conda.anaconda.org/conda-forge/linux-64/libraqm-0.11.0-h6406941_0.conda
@@ -2613,6 +2605,7 @@ packages:
   constrains:
   - libstdcxx-ng ==16.2.0=*_5
   license: GPL-3.0-only WITH GCC-exception-3.1
+  license_family: GPL
   purls: []
   run_exports: {}
   size: 6618916
@@ -3088,7 +3081,7 @@ packages:
   license: MIT
   license_family: MIT
   purls:
-  - pkg:pypi/nh3?source=compressed-mapping
+  - pkg:pypi/nh3?source=hash-mapping
   run_exports: {}
   size: 690746
   timestamp: 1787526819319
@@ -4043,21 +4036,21 @@ packages:
   run_exports: {}
   size: 414021
   timestamp: 1788554113694
-- conda: https://conda.anaconda.org/conda-forge/linux-64/uv-0.12.13-h841d291_0.conda
-  sha256: 02b3ac1f7a27082370a6ec49299c9c1efe245d018ff872da40933fa2279940e9
-  md5: 63a7873a0d33470c9f24272783e77982
+- conda: https://conda.anaconda.org/conda-forge/linux-64/uv-0.12.17-h841d291_0.conda
+  sha256: aa738ebe975460d704145538752047f1b660944bce23472ee6908f506ff67a68
+  md5: 59ce6897b85483cb667bc9b59c9f3a42
   depends:
   - libgcc >=15
-  - __glibc >=2.17,<3.0.a0
   - libstdcxx >=15
+  - __glibc >=2.17,<3.0.a0
   - zstd >=1.5.7,<1.6.0a0
   - liblzma >=5.8.3,<6.0a0
   constrains:
   - __glibc >=2.17
   license: Apache-2.0 OR MIT
   run_exports: {}
-  size: 17367049
-  timestamp: 1789205540246
+  size: 17839971
+  timestamp: 1789929235507
 - conda: https://conda.anaconda.org/conda-forge/linux-64/wrapt-2.4.0-py312h1b36aeb_2.conda
   sha256: 0ab5f935929b386b0f22926b81c923bffb69a91d16137f292f6e61c971067c7a
   md5: 1c6a986ce95c1919e83c4a8650891e38
@@ -5450,7 +5443,6 @@ packages:
   - python 3.14.* *_cp314
   license: BSD-3-Clause
   license_family: BSD
-  run_exports: {}
   size: 6791
   timestamp: 1788302824440
 - conda: https://conda.anaconda.org/conda-forge/noarch/pytorch-lightning-2.6.6-pyh5ded981_0.conda
@@ -5894,7 +5886,7 @@ packages:
   run_exports: {}
   size: 24190
   timestamp: 1779159948016
-- conda_source: mol-embed-service[3910669e] @ .
+- conda_source: mol-embed-service[18320beb] @ .
   variants:
     target_platform: noarch
   depends:
@@ -5930,7 +5922,7 @@ packages:
   - conda: https://conda.anaconda.org/conda-forge/linux-64/python-3.14.7-hcd007b5_106_cp314.conda
   - conda: https://conda.anaconda.org/conda-forge/linux-64/readline-8.3-hd6e31c0_1.conda
   - conda: https://conda.anaconda.org/conda-forge/linux-64/tk-8.6.13-noxft_h1df4ec4_4.conda
-  - conda: https://conda.anaconda.org/conda-forge/linux-64/uv-0.12.13-h841d291_0.conda
+  - conda: https://conda.anaconda.org/conda-forge/linux-64/uv-0.12.17-h841d291_0.conda
   - conda: https://conda.anaconda.org/conda-forge/linux-64/zstd-1.5.7-hb78ec9c_7.conda
   - conda: https://conda.anaconda.org/conda-forge/noarch/ca-certificates-2026.7.22-hbd8a1cb_0.conda
   - conda: https://conda.anaconda.org/conda-forge/noarch/packaging-26.3-pyhc364b38_0.conda
@@ -7182,23 +7174,6 @@ packages:
   version: 3.1.1
   sha256: 8ff8b95779d071ba472cf5bc913028df06031797532f08a7d5b602d8b2a488ca
   requires_python: '>=3.10'
-- pypi: https://files.pythonhosted.org/packages/9e/80/d96143329dbe925d434b016c890a5caa785fac8e14a1570e5d6818b63545/onnxruntime_gpu-1.30.0-cp312-cp312-manylinux_2_28_x86_64.whl
-  name: onnxruntime-gpu
-  version: 1.30.0
-  sha256: 6acc0f4b3d5ac5f2984432faa59dd8fcce6775f8b43a7140afa0f322c7a703b1
-  requires_dist:
-  - flatbuffers
-  - numpy>=1.21.6
-  - packaging
-  - protobuf>=4.25.8
-  - sympy ; extra == 'symbolic'
-  - ml-dtypes ; extra == 'quantization'
-  - nvidia-cuda-nvrtc~=13.0 ; extra == 'cuda'
-  - nvidia-cuda-runtime~=13.0 ; extra == 'cuda'
-  - nvidia-cufft~=12.0 ; extra == 'cuda'
-  - nvidia-curand~=10.0 ; extra == 'cuda'
-  - nvidia-cudnn-cu13~=9.0 ; extra == 'cudnn'
-  requires_python: '>=3.11'
 - pypi: https://files.pythonhosted.org/packages/9e/c3/059298687310d527a58bb01f3b1965787ee3b40dce76752eda8b44e9a2c5/pexpect-4.9.0-py2.py3-none-any.whl
   name: pexpect
   version: 4.9.0
