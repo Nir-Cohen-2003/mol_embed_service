@@ -11,6 +11,11 @@ from .models import (
     MistEmbedder,
     MolJEPAEmbedder,
 )
+from .chemeleon_fingerprint import (
+    CHEMELEON_SERVICE_VERSION,
+    CheMeleonFingerprint,
+    resolve_checkpoint_provenance,
+)
 
 
 ModelType = Literal[
@@ -53,6 +58,35 @@ EMBEDDING_SIZES: dict[ModelType, EmbeddingDim] = {
     "mist-28M": 512,
     "mol-jepa": 512,
 }
+
+
+def get_chemeleon_provenance(checkpoint_path: str | Path) -> dict[str, str]:
+    """Return explicit CheMeleon checkpoint and target semantic provenance."""
+    provenance = resolve_checkpoint_provenance(checkpoint_path)
+    provenance["service_version"] = CHEMELEON_SERVICE_VERSION
+    return provenance
+
+
+def chemeleon_target_array(
+    smiles_list: List[str],
+    checkpoint_path: str | Path,
+    batch_size: int = 32,
+    device: str = "cuda",
+) -> np.ndarray:
+    """Return unnormalized, mean-aggregated 2048-D float32 targets in input order."""
+    if not smiles_list:
+        raise ValueError("CheMeleon target input cannot be empty")
+    if batch_size <= 0:
+        raise ValueError(f"CheMeleon target batch_size must be positive, got {batch_size}")
+    # Explicit provenance is checked before model construction and no generic
+    # embedding cache is involved in this training-target route.
+    resolve_checkpoint_provenance(checkpoint_path)
+    embedder = CheMeleonFingerprint(checkpoint_path=checkpoint_path, device=device, normalize=False)
+    chunks = [embedder(smiles_list[start:start + batch_size]) for start in range(0, len(smiles_list), batch_size)]
+    result = np.ascontiguousarray(np.concatenate(chunks, axis=0), dtype=np.float32)
+    if result.shape != (len(smiles_list), 2048):
+        raise ValueError(f"CheMeleon target shape mismatch: observed={result.shape}, expected={(len(smiles_list), 2048)}")
+    return result
 
 
 def get_embedding_size(model: ModelType) -> EmbeddingDim:
