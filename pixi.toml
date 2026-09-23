@@ -26,13 +26,14 @@ rdkit = ">=2023.09"
 numpy = ">=1.24"
 sentencepiece = ">=0.1.99"
 safetensors = "*"
+chemprop=">=2.2"
+pytorch_geometric="*"
 
 [pypi-dependencies]
 cddd-onnx = ">=0.1.0"
 onnxruntime = ">=1.24.3, <2"
 gmpy2 = "*"
 smirk = ">=0.1.0"
-torch-geometric = "*"
 molfeat = "*"
 
 [environments]
