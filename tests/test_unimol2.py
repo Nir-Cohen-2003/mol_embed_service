@@ -29,6 +29,16 @@ def test_explicit_artifact_must_match_size_and_digest(tmp_path):
         resolve_checkpoint("unimol2-84M", path)
 
 
+def test_offline_cache_miss_does_not_create_cache_or_open_url(tmp_path, monkeypatch):
+    import mol_embed_service.unimol2_checkpoint as checkpoint
+
+    monkeypatch.setenv("MOL_EMBED_OFFLINE", "1")
+    monkeypatch.setattr(checkpoint, "urlopen", lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("network")))
+    with pytest.raises(RuntimeError, match="MOL_EMBED_OFFLINE=1"):
+        resolve_checkpoint("unimol2-84M", cache_dir=tmp_path)
+    assert not (tmp_path / "mol_embed_service").exists()
+
+
 def test_missing_explicit_artifact_fails_without_network(tmp_path, monkeypatch):
     monkeypatch.setenv("UNIMOL2_CHECKPOINT_PATH", str(tmp_path / "missing"))
     with pytest.raises(FileNotFoundError):

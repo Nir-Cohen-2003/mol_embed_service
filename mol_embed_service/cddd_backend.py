@@ -3,20 +3,9 @@
 from __future__ import annotations
 
 import numpy as np
-import pandas as pd
 import torch
 
-
-def _configured_model(upstream_class, session):
-    """Create upstream CDDD inference behavior around the configured session."""
-    from cddd_onnx.main import HParams
-
-    class ConfiguredInferenceModel(upstream_class):
-        def __init__(self):
-            self.hparams = HParams()
-            self.encoder_session = session
-
-    return ConfiguredInferenceModel()
+from .cddd_inference import CDDDInferenceModel, preprocess_smiles
 
 
 class CDDDBackend:
@@ -24,8 +13,8 @@ class CDDDBackend:
 
     def __init__(self, device, session_options_factory=None):
         import onnxruntime as ort
-        from cddd_onnx import InferenceModel
-        from cddd_onnx.model_downloader import get_model_path
+
+        from .cddd_checkpoint import get_model_path
 
         self.device = torch.device(device)
         if self.device.type not in {"cpu", "cuda"}:
@@ -67,7 +56,7 @@ class CDDDBackend:
         if self.device.type == "cuda":
             # ORT otherwise retries a failed CUDA run with a recreated CPU session.
             session.disable_fallback()
-        self.model = _configured_model(InferenceModel, session)
+        self.model = CDDDInferenceModel(session)
 
     def embed(self, smiles_list: list[str], batch_size: int) -> np.ndarray:
         if batch_size <= 0:
@@ -75,8 +64,6 @@ class CDDDBackend:
         result = np.zeros((len(smiles_list), 512), dtype=np.float32)
         if not smiles_list:
             return result
-        from cddd_onnx.preprocessing import preprocess_smiles
-
         valid = []
         valid_indices = []
         for index, smiles in enumerate(smiles_list):
@@ -86,7 +73,7 @@ class CDDDBackend:
                 processed = preprocess_smiles(smiles)
             except Exception:  # noqa: BLE001, S112 - malformed inputs are rejected
                 continue
-            if not pd.isna(processed):
+            if not (isinstance(processed, float) and np.isnan(processed)):
                 valid.append(smiles)
                 valid_indices.append(index)
         dummy = "CN1C=NC2=C1C(=O)N(C)C(=O)N2C"

@@ -1,10 +1,36 @@
 import json
+import os
+import subprocess
+import sys
 from pathlib import Path
 
 import numpy as np
 import pytest
 
 from mol_embed_service.cddd_backend import CDDDBackend
+
+
+def test_fresh_process_offline_embedding_never_imports_upstream_package():
+    script = r'''\
+import sys, types, numpy as np, importlib.machinery
+ort = types.ModuleType("onnxruntime")
+ort.__spec__ = importlib.machinery.ModuleSpec("onnxruntime", loader=None)
+ort.get_available_providers = lambda: ["CPUExecutionProvider"]
+ort.SessionOptions = type("Options", (), {})
+class Session:
+    def get_providers(self): return ["CPUExecutionProvider"]
+    def run(self, _names, inputs): return [np.ones((len(inputs["Input/Placeholder:0"]), 512), dtype=np.float32)]
+ort.InferenceSession = lambda *args, **kwargs: Session()
+sys.modules["onnxruntime"] = ort
+from mol_embed_service import cddd_checkpoint
+cddd_checkpoint.get_model_path = lambda name="encoder": "/cache/encoder.onnx"
+from mol_embed_service.cddd_backend import CDDDBackend
+result = CDDDBackend("cpu").embed(["c1ccccc1"], 2)
+assert result.shape == (1, 512) and np.all(result == 1)
+assert not any(name == "cddd_onnx" or name.startswith("cddd_onnx.") for name in sys.modules)
+'''
+    env = dict(os.environ, MOL_EMBED_OFFLINE="1")
+    subprocess.run([sys.executable, "-c", script], check=True, env=env)
 
 
 @pytest.mark.skipif(

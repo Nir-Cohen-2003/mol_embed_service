@@ -1,7 +1,6 @@
 """Lazy adapters for optional molecular embedding backends."""
 
 import importlib
-import os
 import threading
 from pathlib import Path
 
@@ -9,7 +8,10 @@ import numpy as np
 import torch
 from rdkit import Chem
 
+from .loading_policy import offline_enabled
+from .minimol_backend import create_minimol
 from .models import BaseEmbedder
+from .monroe_checkpoint import resolve_checkpoint as resolve_monroe_checkpoint
 
 _MONROE_DIM = 720
 _MINIMOL_DIM = 512
@@ -60,22 +62,11 @@ def _dependency_error(name: str, install: str) -> ImportError:
 
 
 class MonroeEmbedder(BaseEmbedder):
-    """Monroe encoder backed by an explicitly configured local checkpoint."""
+    """Monroe encoder backed by a trusted local or verified managed checkpoint."""
 
     def __init__(self, device: str = "cuda", *, checkpoint_dir: str | Path | None = None):
         super().__init__(device)
-        configured = checkpoint_dir if checkpoint_dir is not None else os.environ.get("MONROE_CHECKPOINT_DIR")
-        if configured is None:
-            raise ValueError("Monroe requires checkpoint_dir or MONROE_CHECKPOINT_DIR; see README checkpoint instructions")
-        self.checkpoint_dir = Path(configured).expanduser()
-        for filename in ("config.json", "weights.pt"):
-            path = self.checkpoint_dir / filename
-            if not path.is_file() or not os.access(path, os.R_OK) or path.stat().st_size == 0:
-                raise FileNotFoundError(f"Monroe checkpoint requires readable, nonempty {path}")
-            if filename == "weights.pt":
-                with path.open("rb") as checkpoint:
-                    if checkpoint.read(120).startswith(b"version https://git-lfs.github.com/spec/v1"):
-                        raise ValueError(f"Monroe checkpoint {path} is a Git LFS pointer; fetch the actual LFS weight file")
+        self.checkpoint_dir = resolve_monroe_checkpoint(checkpoint_dir)
         try:
             embed_module = importlib.import_module("monroe.eval.embed")
             checkpoint_module = importlib.import_module("monroe.model.ckpt")
@@ -118,10 +109,9 @@ class MiniMolEmbedder(BaseEmbedder):
                 raise ValueError("MiniMol is unsupported when CUDA is visible: hide CUDA before process startup")
             if _minimol_backend is None:
                 try:
-                    minimol_module = importlib.import_module("minimol")
+                    _minimol_backend = create_minimol(batch_size=100)
                 except ImportError as exc:
                     raise _dependency_error("MiniMol", "the pinned isolated installation") from exc
-                _minimol_backend = minimol_module.Minimol(batch_size=100)
             chunks = []
             with torch.no_grad():
                 for start in range(0, len(smiles), batch_size):
@@ -148,9 +138,24 @@ class GRASPEmbedder(BaseEmbedder):
             grasp_module = importlib.import_module("grasp")
         except ImportError as exc:
             raise _dependency_error("GRASP", "the pinned isolated installation") from exc
-        self.encoder = grasp_module.GRASPEncoder.from_pretrained(
-            _GRASP_MODEL, device=str(self.device), revision=_GRASP_REVISION
-        )
+        try:
+            from huggingface_hub import hf_hub_download
+        except ImportError as exc:
+            raise _dependency_error("GRASP", "the pinned isolated installation") from exc
+        local_files_only = offline_enabled()
+        snapshot_files = [
+            hf_hub_download(
+                repo_id=_GRASP_MODEL,
+                filename=filename,
+                revision=_GRASP_REVISION,
+                local_files_only=local_files_only,
+            )
+            for filename in ("model.safetensors", "config.json", "vocab.json")
+        ]
+        snapshot_dir = Path(snapshot_files[0]).parent
+        if any(Path(path).parent != snapshot_dir for path in snapshot_files):
+            raise RuntimeError("GRASP checkpoint files did not resolve to one Hugging Face snapshot")
+        self.encoder = grasp_module.GRASPEncoder.from_pretrained(str(snapshot_dir), device=str(self.device))
 
     def embed(self, smiles_list: list[str], batch_size: int) -> np.ndarray:
         smiles = _validate_inputs("GRASP", smiles_list, batch_size)

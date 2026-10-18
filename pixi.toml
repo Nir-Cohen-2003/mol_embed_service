@@ -31,10 +31,12 @@ pytorch_geometric="*"
 molfeat="*"
 onnxruntime = "*"#{ version = "==1.24.4", build = "*cuda129*" }
 [pypi-dependencies]
-cddd-onnx = ">=0.1.0"
 # onnxruntime = ">=1.24.3, <2"
 gmpy2 = "*"
 smirk = ">=0.1.0"
+filelock = ">=3.12"
+huggingface-hub = ">=0.30,<1"
+pandas = ">=2.0"
 molfeat = "*"
 
 [environments]

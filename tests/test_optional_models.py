@@ -70,9 +70,11 @@ def test_monroe_configuration_and_reconstructs_duplicates_in_input_order(tmp_pat
     assert np.array_equal(result[:, 0], [1, 2, 1])
 
 
-def test_monroe_requires_configured_existing_files(tmp_path, monkeypatch):
+def test_monroe_uses_cache_and_offline_miss_is_actionable(tmp_path, monkeypatch):
     monkeypatch.delenv("MONROE_CHECKPOINT_DIR", raising=False)
-    with pytest.raises(ValueError, match="MONROE_CHECKPOINT_DIR"):
+    monkeypatch.setenv("MOL_EMBED_OFFLINE", "1")
+    monkeypatch.setenv("XDG_CACHE_HOME", str(tmp_path))
+    with pytest.raises(RuntimeError, match="MOL_EMBED_OFFLINE=1"):
         optional.MonroeEmbedder()
     monkeypatch.setenv("MONROE_CHECKPOINT_DIR", str(tmp_path))
     with pytest.raises(FileNotFoundError, match="config.json"):
@@ -103,9 +105,7 @@ def test_minimol_hidden_cuda_cpu_fallback_chunking_and_singleton(monkeypatch):
         def __call__(self, batch):
             calls.append(("call", list(batch), torch.is_grad_enabled()))
             return [torch.ones(512) * (1 if value == "CCO" else 2) for value in batch]
-    package = types.ModuleType("minimol")
-    package.Minimol = Backend
-    monkeypatch.setitem(sys.modules, "minimol", package)
+    monkeypatch.setattr(optional, "create_minimol", lambda batch_size: Backend(batch_size))
     rows = ["CCO", "CC", "CCO"]
     result = optional.MiniMolEmbedder("cuda").embed(rows, 2)
     optional.MiniMolEmbedder("cpu").embed(rows, 1)
@@ -137,9 +137,7 @@ def test_minimol_unsupported_device_and_concurrent_singleton(monkeypatch):
             initialized.append(batch_size)
         def __call__(self, smiles):
             return [torch.zeros(512) for _ in smiles]
-    package = types.ModuleType("minimol")
-    package.Minimol = Backend
-    monkeypatch.setitem(sys.modules, "minimol", package)
+    monkeypatch.setattr(optional, "create_minimol", lambda batch_size: Backend(batch_size))
     threads = [threading.Thread(target=lambda: optional.MiniMolEmbedder("cpu").embed(["CCO"], 1)) for _ in range(6)]
     for thread in threads:
         thread.start()
@@ -161,14 +159,22 @@ def test_missing_optional_dependencies_have_actionable_errors(tmp_path, monkeypa
         optional.MonroeEmbedder(checkpoint_dir=tmp_path)
     monkeypatch.setattr(optional.torch.cuda, "is_available", lambda: False)
     optional._minimol_backend = None
+    monkeypatch.setattr(optional, "create_minimol", lambda **kwargs: (_ for _ in ()).throw(ImportError("missing")))
     with pytest.raises(ImportError, match="optional.*README"):
         optional.MiniMolEmbedder("cpu").embed(["CCO"], 1)
     with pytest.raises(ImportError, match="optional.*README"):
         optional.GRASPEmbedder("cpu")
 
 
-def test_grasp_pinned_loader_and_encode(monkeypatch):
+def test_grasp_pinned_loader_and_encode(monkeypatch, tmp_path):
     calls = {}
+    monkeypatch.setenv("MOL_EMBED_OFFLINE", "1")
+    hub = types.ModuleType("huggingface_hub")
+    def download(**kwargs):
+        calls.setdefault("downloads", []).append(kwargs)
+        return str(tmp_path / kwargs["filename"])
+    hub.hf_hub_download = download
+    monkeypatch.setitem(sys.modules, "huggingface_hub", hub)
     class Encoder:
         @classmethod
         def from_pretrained(cls, *args, **kwargs):
@@ -182,7 +188,10 @@ def test_grasp_pinned_loader_and_encode(monkeypatch):
     monkeypatch.setitem(sys.modules, "grasp", package)
     model = optional.GRASPEmbedder("cpu")
     result = model.embed(["CCO", "CCO", "CC"], 2)
-    assert calls["load"] == (("caithmac/GRASP",), {"device": "cpu", "revision": optional._GRASP_REVISION})
+    assert calls["load"] == ((str(tmp_path.resolve()),), {"device": "cpu"})
+    assert [call["filename"] for call in calls["downloads"]] == ["model.safetensors", "config.json", "vocab.json"]
+    assert all(call["repo_id"] == "caithmac/GRASP" and call["revision"] == optional._GRASP_REVISION for call in calls["downloads"])
+    assert all(call["local_files_only"] is True for call in calls["downloads"])
     assert calls["encode"] == (["CCO", "CCO", "CC"], 2)
     assert result.shape == (3, 768) and result.dtype == np.float32
 

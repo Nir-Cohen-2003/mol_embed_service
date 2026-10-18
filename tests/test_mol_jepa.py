@@ -71,7 +71,7 @@ def test_mol_jepa_cls_embedding_and_pinned_loader(monkeypatch, tmp_path):
     assert loader_calls == [
         (
             (MODEL_NAME,),
-            {"revision": MODEL_REVISION, "trust_remote_code": True},
+            {"revision": MODEL_REVISION, "trust_remote_code": True, "local_files_only": False},
         )
     ]
     assert fake.device == torch.device("cpu")

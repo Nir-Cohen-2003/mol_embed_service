@@ -1,10 +1,10 @@
 """CheMeleon fingerprint module using the official ChemProp 2.2+ API."""
 
 import hashlib
-import os
 from pathlib import Path
 from typing import Sequence, Union
 from urllib.request import urlretrieve
+
 import numpy as np
 import torch
 from chemprop import featurizers, nn
@@ -12,6 +12,8 @@ from chemprop.data import BatchMolGraph
 from chemprop.models import MPNN
 from chemprop.nn import RegressionFFN
 from rdkit.Chem import Mol, MolFromSmiles
+
+from .loading_policy import offline_enabled, reject_offline_download
 
 CHEMELEON_TARGET_SEMANTIC_VERSION = "chemeleon-mean-aggregation-v1"
 CHEMELEON_SERVICE_VERSION = "0.2.0"
@@ -40,7 +42,9 @@ def _get_or_download(path: Union[str, Path], url: str) -> Path:
     path = Path(path)
     if path.is_dir():
         path = path / Path(url).name
-    if not path.exists():
+    if not path.is_file():
+        if offline_enabled():
+            reject_offline_download("CheMeleon", Path(url).name, path)
         path.parent.mkdir(parents=True, exist_ok=True)
         urlretrieve(url, path)
     return path

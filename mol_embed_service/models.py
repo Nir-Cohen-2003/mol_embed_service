@@ -1,13 +1,16 @@
 """Model wrapper classes for different embedding models."""
 
-import sys
 import logging
-from typing import List, Optional
+import sys
 from abc import ABC, abstractmethod
-import torch
+from typing import List, Optional
+
 import numpy as np
+import torch
 import tqdm
-from transformers import AutoTokenizer, AutoModel, AutoModelForSeq2SeqLM
+from transformers import AutoModel, AutoModelForSeq2SeqLM, AutoTokenizer
+
+from .loading_policy import offline_enabled
 
 
 def _in_interactive_terminal() -> bool:
@@ -115,8 +118,9 @@ class ChemBERTaEmbedder(BaseEmbedder):
         if not model_name:
             raise ValueError(f"Unknown ChemBERTa version: {version}")
 
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
-        self.model = AutoModel.from_pretrained(model_name).to(self.device)
+        local_files_only = offline_enabled()
+        self.tokenizer = AutoTokenizer.from_pretrained(model_name, local_files_only=local_files_only)
+        self.model = AutoModel.from_pretrained(model_name, local_files_only=local_files_only).to(self.device)
         self.model.eval()
 
     def embed(self, smiles_list: List[str], batch_size: int) -> np.ndarray:
@@ -174,9 +178,13 @@ class MolformerEmbedder(BaseEmbedder):
 
     def __init__(self, device: str = "cuda"):
         super().__init__(device)
-        self.tokenizer = AutoTokenizer.from_pretrained(self.MODEL_NAME, trust_remote_code=True)
+        local_files_only = offline_enabled()
+        self.tokenizer = AutoTokenizer.from_pretrained(
+            self.MODEL_NAME, trust_remote_code=True, local_files_only=local_files_only
+        )
         self.model = AutoModel.from_pretrained(
-            self.MODEL_NAME, trust_remote_code=True, deterministic_eval=True
+            self.MODEL_NAME, trust_remote_code=True, deterministic_eval=True,
+            local_files_only=local_files_only,
         ).to(self.device)
         self.model.eval()
 
@@ -271,6 +279,7 @@ class MolJEPAEmbedder(BaseEmbedder):
             self.MODEL_NAME,
             revision=self.MODEL_REVISION,
             trust_remote_code=True,
+            local_files_only=offline_enabled(),
         ).to(self.device)
         self.model.eval()
 
@@ -337,8 +346,13 @@ class MistEmbedder(BaseEmbedder):
         # Import SmirkTokenizerFast so AutoTokenizer can resolve it
         from smirk import SmirkTokenizerFast  # noqa: F401
 
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
-        self.model = AutoModel.from_pretrained(model_name, trust_remote_code=True).to(self.device)
+        local_files_only = offline_enabled()
+        self.tokenizer = AutoTokenizer.from_pretrained(
+            model_name, trust_remote_code=True, local_files_only=local_files_only
+        )
+        self.model = AutoModel.from_pretrained(
+            model_name, trust_remote_code=True, local_files_only=local_files_only
+        ).to(self.device)
         self.model.eval()
 
     @staticmethod

@@ -9,6 +9,7 @@ from urllib.request import urlopen
 
 import torch
 
+from .loading_policy import offline_enabled, reject_offline_download
 from .unimol2_config import CONFIGS, HF_REVISION
 
 
@@ -40,13 +41,16 @@ def resolve_checkpoint(name, checkpoint_path=None, cache_dir=None):
     target = (
         root / "mol_embed_service" / "unimol2" / config.directory / HF_REVISION / "checkpoint.pt"
     )
-    target.parent.mkdir(parents=True, exist_ok=True)
     if target.is_file():
         try:
             _verified(target, config)
             return target
         except ValueError:
-            pass
+            if offline_enabled():
+                reject_offline_download("Uni-Mol2", config.name, target)
+    elif offline_enabled():
+        reject_offline_download("Uni-Mol2", config.name, target)
+    target.parent.mkdir(parents=True, exist_ok=True)
     fd, temp = tempfile.mkstemp(prefix=".checkpoint-", dir=target.parent)
     try:
         digest = hashlib.sha256()

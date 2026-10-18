@@ -16,13 +16,15 @@ dependencies = [
     "rdkit>=2023.9.1",
     "numpy>=1.24",
     "sentencepiece>=0.1.99",
-    "cddd-onnx>=0.1.0",
     "onnxruntime>=1.24.3,<2",
     "chemprop>=2.2.0",
     "smirk>=0.1.0",
     "torch-geometric",
     "molfeat",
     "safetensors",
+    "filelock>=3.12",
+    "huggingface-hub>=0.30,<1",
+    "pandas>=2.0",
 ]
 
 [project.optional-dependencies]
@@ -31,6 +33,9 @@ dev = ["pytest>=7.4", "black>=23.0", "ruff>=0.1"]
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["mol_embed_service*"]
+
+[tool.setuptools.data-files]
+"share/doc/mol-embed-service" = ["THIRD_PARTY_NOTICES.md"]
 
 
 [tool.ruff]
