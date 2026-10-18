@@ -1,6 +1,7 @@
 """Model wrapper classes for different embedding models."""
 
 import sys
+import logging
 from typing import List, Optional
 from abc import ABC, abstractmethod
 import torch
@@ -19,7 +20,9 @@ class BaseEmbedder(ABC):
 
     def __init__(self, device: str = "cuda"):
         if device == "cuda" and not torch.cuda.is_available():
-            print("Warning: device='cuda' requested but CUDA is not available. Falling back to CPU.")
+            print(
+                "Warning: device='cuda' requested but CUDA is not available. Falling back to CPU."
+            )
             self.device = torch.device("cpu")
         else:
             self.device = torch.device(device)
@@ -30,13 +33,80 @@ class BaseEmbedder(ABC):
         pass
 
 
+class UniMol2Embedder(BaseEmbedder):
+    """FP32 Uni-Mol2 CLS embeddings for one exact size-qualified model."""
+
+    def __init__(
+        self,
+        variant: str = "unimol2-84M",
+        device: str = "cuda",
+        checkpoint_path=None,
+        cache_dir=None,
+    ):
+        super().__init__(device)
+        from .unimol2_checkpoint import load_checkpoint
+        from .unimol2_config import CONFIGS, SOURCE_REVISION
+        from .unimol2_model import UniMol2Model
+
+        if variant not in CONFIGS:
+            raise ValueError(f"Unknown Uni-Mol2 variant: {variant}")
+        config, state = load_checkpoint(variant, checkpoint_path, cache_dir)
+        self.config = config
+        from rdkit import rdBase
+
+        logging.getLogger(__name__).info(
+            "Uni-Mol2 %s sha256=%s source_revision=%s rdkit=%s features=retained-etkdgv3-seed42-mmff94-max256-length-bucket-fp32",
+            config.name,
+            config.sha256,
+            SOURCE_REVISION,
+            rdBase.rdkitVersion,
+        )
+        self.model = UniMol2Model(config=config).float()
+        self.model.load_state_dict(
+            {k: v for k, v in state.items() if k in self.model.state_dict()}, strict=True
+        )
+        self.model.to(self.device).eval()
+
+    def embed(self, smiles_list: list[str], batch_size: int) -> np.ndarray:
+        from .unimol2_features import collate, featurize_smiles
+
+        if batch_size <= 0:
+            raise ValueError(f"batch_size must be positive, got {batch_size}")
+        result = np.zeros((len(smiles_list), self.config.output_dim), dtype=np.float32)
+        buckets = {}
+        for i, smiles in enumerate(smiles_list):
+            try:
+                item = featurize_smiles(smiles)
+            except Exception as exc:
+                raise ValueError(f"Uni-Mol2 preprocessing failed at row {i}: {exc}") from exc
+            if item is not None:
+                n = len(item["token"])
+                length = ((n + 4) // 4) * 4
+                buckets.setdefault(length, []).append((i, item))
+        with torch.inference_mode():
+            for rows in buckets.values():
+                for start in range(0, len(rows), batch_size):
+                    batch = rows[start : start + batch_size]
+                    data = collate([item for _, item in batch], self.device)
+                    output = self.model(data)
+                    if (
+                        output.shape != (len(batch), self.config.output_dim)
+                        or not torch.isfinite(output).all()
+                    ):
+                        raise ValueError("Uni-Mol2 produced invalid representation tensor")
+                    values = output.float().cpu().numpy()
+                    for (row, _), value in zip(batch, values):
+                        result[row] = value
+        return result
+
+
 class ChemBERTaEmbedder(BaseEmbedder):
     """ChemBERTa v1/v2/v3 embedder using HuggingFace models."""
 
     MODEL_NAMES = {
         "chemberta-v1": "seyonec/ChemBERTa-zinc-base-v1",
         "chemberta-v2": "DeepChem/ChemBERTa-77M-MLM",
-        "chemberta-v3": "DeepChem/ChemBERTa-77M-MTR"
+        "chemberta-v3": "DeepChem/ChemBERTa-77M-MTR",
     }
 
     def __init__(self, version: str = "chemberta-v1", device: str = "cuda"):
@@ -54,21 +124,23 @@ class ChemBERTaEmbedder(BaseEmbedder):
         embeddings = []
 
         with torch.no_grad():
-            for i in tqdm.tqdm(range(0, len(smiles_list), batch_size), desc=f"Embedding with {self.__class__.__name__}", disable=not _in_interactive_terminal()):
-                batch = smiles_list[i:i + batch_size]
+            for i in tqdm.tqdm(
+                range(0, len(smiles_list), batch_size),
+                desc=f"Embedding with {self.__class__.__name__}",
+                disable=not _in_interactive_terminal(),
+            ):
+                batch = smiles_list[i : i + batch_size]
                 inputs = self.tokenizer(
-                    batch,
-                    padding=True,
-                    truncation=True,
-                    max_length=512,
-                    return_tensors="pt"
+                    batch, padding=True, truncation=True, max_length=512, return_tensors="pt"
                 ).to(self.device)
 
                 outputs = self.model(**inputs)
                 # Mean pooling over sequence length
                 attention_mask = inputs["attention_mask"]
                 token_embeddings = outputs.last_hidden_state
-                input_mask_expanded = attention_mask.unsqueeze(-1).expand(token_embeddings.size()).float()
+                input_mask_expanded = (
+                    attention_mask.unsqueeze(-1).expand(token_embeddings.size()).float()
+                )
                 sum_embeddings = torch.sum(token_embeddings * input_mask_expanded, 1)
                 sum_mask = torch.clamp(input_mask_expanded.sum(1), min=1e-9)
                 batch_embeddings = (sum_embeddings / sum_mask).cpu().numpy()
@@ -79,98 +151,20 @@ class ChemBERTaEmbedder(BaseEmbedder):
 
 
 class CDDDEmbedder(BaseEmbedder):
-    """CDDD embedder using cddd-onnx package."""
+    """CDDD embedder using a strictly configured ONNX Runtime session."""
 
     def __init__(self, device: str = "cuda"):
-        super().__init__(device)
-        # cddd-onnx uses ONNX Runtime, GPU support through onnxruntime-gpu
-        from cddd_onnx import InferenceModel
-        self.model = InferenceModel()
-        
-        # Override the inference session to enforce CUDA execution provider if requested
-        if self.device.type == "cuda":
-            import onnxruntime as ort
-            from cddd_onnx.model_downloader import get_model_path
-            encoder_path = get_model_path("encoder")
-            try:
-                sess_options = ort.SessionOptions()
-                # To prevent the thread_setaffinity_np warning
-                sess_options.intra_op_num_threads = 1
-                sess_options.inter_op_num_threads = 1
-                self.model.encoder_session = ort.InferenceSession(
-                    encoder_path,
-                    sess_options=sess_options,
-                    providers=["CUDAExecutionProvider", "CPUExecutionProvider"]
-                )
-            except Exception as e:
-                print(f"Warning: Failed to set CUDAExecutionProvider for CDDD: {e}")
-        else:
-            # Also set the thread options for CPU to prevent the warning
-            import onnxruntime as ort
-            from cddd_onnx.model_downloader import get_model_path
-            encoder_path = get_model_path("encoder")
-            try:
-                sess_options = ort.SessionOptions()
-                sess_options.intra_op_num_threads = 1
-                sess_options.inter_op_num_threads = 1
-                self.model.encoder_session = ort.InferenceSession(
-                    encoder_path,
-                    sess_options=sess_options,
-                    providers=["CPUExecutionProvider"]
-                )
-            except Exception as e:
-                pass
+        from .cddd_backend import CDDDBackend
+
+        requested_device = torch.device(device)
+        super().__init__("cpu")
+        self.device = requested_device
+        self._backend = CDDDBackend(requested_device)
+        self.model = self._backend.model
 
     def embed(self, smiles_list: List[str], batch_size: int) -> np.ndarray:
         """Generate CDDD embeddings (512-dimensional)."""
-        import os
-        import pandas as pd
-        from cddd_onnx.preprocessing import preprocess_smiles
-        
-        # Prevent onnxruntime from setting affinity which causes errors in some environments
-        os.environ["OMP_NUM_THREADS"] = "1"
-        os.environ["MKL_NUM_THREADS"] = "1"
-        
-        # Use a more complex dummy SMILES that is likely to be valid for CDDD
-        dummy_smiles = "CN1C=NC2=C1C(=O)N(C)C(=O)N2C" # Caffeine
-        
-        final_embeddings = np.zeros((len(smiles_list), 512), dtype=np.float32)
-
-        for i in tqdm.tqdm(range(0, len(smiles_list), batch_size), desc=f"Embedding with {self.__class__.__name__}", disable=not _in_interactive_terminal()):
-            batch = smiles_list[i:i + batch_size]
-            valid_indices = []
-            valid_smiles = []
-
-            for j, s in enumerate(batch):
-                if not s:
-                    continue
-                try:
-                    p = preprocess_smiles(s)
-                    if not pd.isna(p):
-                        valid_indices.append(j)
-                        valid_smiles.append(s)
-                except Exception:
-                    pass
-
-            if not valid_smiles:
-                continue
-
-            try:
-                # Prepend dummy to ensure no NaNs in first element
-                pair_input = [dummy_smiles] + valid_smiles
-                emb_output = self.model.seq_to_emb(pair_input)
-                
-                # Exclude dummy
-                valid_embs = emb_output[1:]
-                
-                for idx, valid_idx in enumerate(valid_indices):
-                    emb = valid_embs[idx]
-                    if not np.isnan(emb).any():
-                        final_embeddings[i + valid_idx] = emb
-            except Exception as e:
-                print(f"Error embedding batch in CDDD: {e}")
-
-        return final_embeddings
+        return self._backend.embed(smiles_list, batch_size)
 
 
 class MolformerEmbedder(BaseEmbedder):
@@ -182,9 +176,7 @@ class MolformerEmbedder(BaseEmbedder):
         super().__init__(device)
         self.tokenizer = AutoTokenizer.from_pretrained(self.MODEL_NAME, trust_remote_code=True)
         self.model = AutoModel.from_pretrained(
-            self.MODEL_NAME, 
-            trust_remote_code=True, 
-            deterministic_eval=True
+            self.MODEL_NAME, trust_remote_code=True, deterministic_eval=True
         ).to(self.device)
         self.model.eval()
 
@@ -193,19 +185,21 @@ class MolformerEmbedder(BaseEmbedder):
         embeddings = []
 
         with torch.no_grad():
-            for i in tqdm.tqdm(range(0, len(smiles_list), batch_size), desc=f"Embedding with {self.__class__.__name__}", disable=not _in_interactive_terminal()):
-                batch = smiles_list[i:i + batch_size]
-                inputs = self.tokenizer(
-                    batch,
-                    padding=True,
-                    return_tensors="pt"
-                ).to(self.device)
+            for i in tqdm.tqdm(
+                range(0, len(smiles_list), batch_size),
+                desc=f"Embedding with {self.__class__.__name__}",
+                disable=not _in_interactive_terminal(),
+            ):
+                batch = smiles_list[i : i + batch_size]
+                inputs = self.tokenizer(batch, padding=True, return_tensors="pt").to(self.device)
 
                 outputs = self.model(**inputs)
                 # Mean pooling over sequence length
                 attention_mask = inputs["attention_mask"]
                 token_embeddings = outputs.last_hidden_state
-                input_mask_expanded = attention_mask.unsqueeze(-1).expand(token_embeddings.size()).float()
+                input_mask_expanded = (
+                    attention_mask.unsqueeze(-1).expand(token_embeddings.size()).float()
+                )
                 sum_embeddings = torch.sum(token_embeddings * input_mask_expanded, 1)
                 sum_mask = torch.clamp(input_mask_expanded.sum(1), min=1e-9)
                 batch_embeddings = (sum_embeddings / sum_mask).cpu().numpy()
@@ -230,13 +224,18 @@ class CheMeleonEmbedder(BaseEmbedder):
         """Generate CheMeleon embeddings (2048-dimensional)."""
         embeddings = []
 
-        for i in tqdm.tqdm(range(0, len(smiles_list), batch_size), desc=f"Embedding with {self.__class__.__name__}", disable=not _in_interactive_terminal()):
-            batch = smiles_list[i:i + batch_size]
+        for i in tqdm.tqdm(
+            range(0, len(smiles_list), batch_size),
+            desc=f"Embedding with {self.__class__.__name__}",
+            disable=not _in_interactive_terminal(),
+        ):
+            batch = smiles_list[i : i + batch_size]
             valid_indices = []
             valid_smiles = []
 
             for j, s in enumerate(batch):
                 from rdkit import Chem
+
                 mol = Chem.MolFromSmiles(s) if s else None
                 if mol is not None:
                     valid_indices.append(j)
@@ -286,7 +285,7 @@ class MolJEPAEmbedder(BaseEmbedder):
                 desc=f"Embedding with {self.__class__.__name__}",
                 disable=not _in_interactive_terminal(),
             ):
-                batch = smiles_list[i:i + batch_size]
+                batch = smiles_list[i : i + batch_size]
                 valid_indices = []
                 valid_smiles = []
                 for j, smiles in enumerate(batch):
@@ -295,17 +294,14 @@ class MolJEPAEmbedder(BaseEmbedder):
                         valid_indices.append(j)
                         valid_smiles.append(smiles)
 
-                batch_embeddings = np.zeros(
-                    (len(batch), self.EMBEDDING_DIM), dtype=np.float32
-                )
+                batch_embeddings = np.zeros((len(batch), self.EMBEDDING_DIM), dtype=np.float32)
                 if valid_smiles:
                     output = self.model(valid_smiles)
                     cls = output.cls.detach().cpu().numpy()
                     expected_shape = (len(valid_smiles), self.EMBEDDING_DIM)
                     if cls.shape != expected_shape:
                         raise ValueError(
-                            "Mol-JEPA out.cls has shape "
-                            f"{cls.shape}; expected {expected_shape}"
+                            f"Mol-JEPA out.cls has shape {cls.shape}; expected {expected_shape}"
                         )
                     cls = cls.astype(np.float32, copy=False)
                     for row, valid_idx in enumerate(valid_indices):
@@ -340,6 +336,7 @@ class MistEmbedder(BaseEmbedder):
 
         # Import SmirkTokenizerFast so AutoTokenizer can resolve it
         from smirk import SmirkTokenizerFast  # noqa: F401
+
         self.tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
         self.model = AutoModel.from_pretrained(model_name, trust_remote_code=True).to(self.device)
         self.model.eval()
@@ -347,6 +344,7 @@ class MistEmbedder(BaseEmbedder):
     @staticmethod
     def _kekulize(smiles: str) -> Optional[str]:
         from rdkit import Chem
+
         mol = Chem.MolFromSmiles(smiles) if smiles else None
         if mol is None:
             return None
@@ -358,8 +356,12 @@ class MistEmbedder(BaseEmbedder):
         embeddings = []
 
         with torch.no_grad():
-            for i in tqdm.tqdm(range(0, len(smiles_list), batch_size), desc=f"Embedding with {self.__class__.__name__}({self.version})", disable=not _in_interactive_terminal()):
-                batch = smiles_list[i:i + batch_size]
+            for i in tqdm.tqdm(
+                range(0, len(smiles_list), batch_size),
+                desc=f"Embedding with {self.__class__.__name__}({self.version})",
+                disable=not _in_interactive_terminal(),
+            ):
+                batch = smiles_list[i : i + batch_size]
                 valid_indices = []
                 valid_smiles = []
 
@@ -377,7 +379,7 @@ class MistEmbedder(BaseEmbedder):
                         padding=True,
                         truncation=True,
                         max_length=512,
-                        return_tensors="pt"
+                        return_tensors="pt",
                     ).to(self.device)
 
                     outputs = self.model(**inputs)
@@ -390,5 +392,3 @@ class MistEmbedder(BaseEmbedder):
                 embeddings.append(batch_embeddings)
 
         return np.vstack(embeddings)
-
-

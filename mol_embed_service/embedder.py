@@ -10,7 +10,9 @@ from .models import (
     CheMeleonEmbedder,
     MistEmbedder,
     MolJEPAEmbedder,
+    UniMol2Embedder,
 )
+from .optional_models import MonroeEmbedder, MiniMolEmbedder, GRASPEmbedder
 from .chemeleon_fingerprint import (
     CHEMELEON_SERVICE_VERSION,
     CheMeleonFingerprint,
@@ -28,9 +30,17 @@ ModelType = Literal[
     "mist-1.8B",
     "mist-28M",
     "mol-jepa",
+    "monroe",
+    "minimol",
+    "grasp",
+    "unimol2-84M",
+    "unimol2-164M",
+    "unimol2-310M",
+    "unimol2-570M",
+    "unimol2-1.1B",
 ]
 
-EmbeddingDim = Literal[768, 512, 384, 2048, 2304]
+EmbeddingDim = Literal[768, 512, 384, 1024, 1536, 2048, 2304, 720]
 
 #: Mapping of model types to their embedding dimensions.
 #:
@@ -46,6 +56,9 @@ EmbeddingDim = Literal[768, 512, 384, 2048, 2304]
 #:         "mist-1.8B": 2304,
 #:         "mist-28M": 512,
 #:         "mol-jepa": 512,
+#:         "monroe": 720,
+#:         "minimol": 512,
+#:         "grasp": 768,
 #:     }
 EMBEDDING_SIZES: dict[ModelType, EmbeddingDim] = {
     "chemberta-v1": 768,
@@ -57,6 +70,14 @@ EMBEDDING_SIZES: dict[ModelType, EmbeddingDim] = {
     "mist-1.8B": 2304,
     "mist-28M": 512,
     "mol-jepa": 512,
+    "monroe": 720,
+    "minimol": 512,
+    "grasp": 768,
+    "unimol2-84M": 768,
+    "unimol2-164M": 768,
+    "unimol2-310M": 1024,
+    "unimol2-570M": 1536,
+    "unimol2-1.1B": 1536,
 }
 
 
@@ -160,11 +181,17 @@ def embed_smiles(
         embedder = MistEmbedder(version=model, device=device)
     elif model == "mol-jepa":
         embedder = MolJEPAEmbedder(device=device)
+    elif model == "monroe":
+        embedder = MonroeEmbedder(device=device)
+    elif model == "minimol":
+        embedder = MiniMolEmbedder(device=device)
+    elif model == "grasp":
+        embedder = GRASPEmbedder(device=device)
+    elif model.startswith("unimol2-"):
+        embedder = UniMol2Embedder(variant=model, device=device)
     else:
-        raise ValueError(
-            f"Unknown model: {model}. "
-            f"Must be one of: chemberta-v1, chemberta-v2, chemberta-v3, cddd, molformer, chemeleon, mist-1.8B, mist-28M, mol-jepa"
-        )
+        valid_models = ", ".join(get_args(ModelType))
+        raise ValueError(f"Unknown model: {model}. Must be one of: {valid_models}")
 
     # Generate embeddings
     print(f"Generating embeddings (batch_size={batch_size})...")
