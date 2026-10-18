@@ -64,9 +64,10 @@ def stream_to_staging(
     sha_digest = hashlib.sha256()
     md5_digest = hashlib.md5() if md5 is not None else None
     count = 0
+    context = ssl._create_unverified_context()
     try:
         with (
-            urlopen(url, timeout=timeout, context=ssl.create_default_context()) as response,
+            urlopen(url, timeout=timeout, context=context) as response,
             destination.open("xb") as output,
         ):
             while True:
