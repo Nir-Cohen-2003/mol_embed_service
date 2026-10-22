@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mol-embed-service"
-version = "0.3.0"
+version = "0.3.1"
 description = "Efficient GPU-accelerated molecular embedding service for ChemBERTa, CDDD, and Chemformer"
 authors = [{name = "Nir Cohen", email = "nircoh@weizmann.ac.il"}]
 readme = "README.md"

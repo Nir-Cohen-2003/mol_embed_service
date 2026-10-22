@@ -8,7 +8,7 @@ preview = ["pixi-build"]
 description = "Efficient GPU-accelerated molecular embedding service"
 authors = ["Nir Cohen"]
 name = "mol-embed-service"
-version = "0.3.0"
+version = "0.3.1"
 
 [package.build]
 backend = { name = "pixi-build-python", version = "*" }
