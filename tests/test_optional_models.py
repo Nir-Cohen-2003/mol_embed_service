@@ -34,6 +34,17 @@ def test_registry_dimensions_and_unknown_model():
         public.get_embedding_size("unknown")
 
 
+def test_monroe_is_a_commit_pinned_required_install_dependency():
+    revision = "57238edfffea03808abe761a00cd9a75fa41bb95"
+    with open("pyproject.toml", encoding="utf-8") as stream:
+        pyproject = stream.read()
+    with open("pixi.toml", encoding="utf-8") as stream:
+        pixi = stream.read()
+    assert f"monroe @ git+https://github.com/blazejba/Monroe.git@{revision}" in pyproject
+    assert f'rev = "{revision}"' in pixi
+    assert 'monroe = { git = "https://github.com/blazejba/Monroe.git"' in pixi
+
+
 def _monroe(tmp_path, monkeypatch, output):
     (tmp_path / "config.json").write_text("{}")
     (tmp_path / "weights.pt").write_bytes(b"trusted mock")
@@ -71,11 +82,14 @@ def test_monroe_configuration_and_reconstructs_duplicates_in_input_order(tmp_pat
 
 
 def test_monroe_uses_cache_and_offline_miss_is_actionable(tmp_path, monkeypatch):
+    _monroe(tmp_path, monkeypatch, {})
     monkeypatch.delenv("MONROE_CHECKPOINT_DIR", raising=False)
     monkeypatch.setenv("MOL_EMBED_OFFLINE", "1")
     monkeypatch.setenv("XDG_CACHE_HOME", str(tmp_path))
     with pytest.raises(RuntimeError, match="MOL_EMBED_OFFLINE=1"):
         optional.MonroeEmbedder()
+    (tmp_path / "config.json").unlink()
+    (tmp_path / "weights.pt").unlink()
     monkeypatch.setenv("MONROE_CHECKPOINT_DIR", str(tmp_path))
     with pytest.raises(FileNotFoundError, match="config.json"):
         optional.MonroeEmbedder()
@@ -146,16 +160,17 @@ def test_minimol_unsupported_device_and_concurrent_singleton(monkeypatch):
     assert initialized == [100]
 
 
-def test_missing_optional_dependencies_have_actionable_errors(tmp_path, monkeypatch):
-    (tmp_path / "config.json").write_text("{}")
-    (tmp_path / "weights.pt").write_bytes(b"weights")
+def test_missing_backend_dependencies_have_actionable_errors(tmp_path, monkeypatch):
     original_import = optional.importlib.import_module
     def without_optional(name, *args, **kwargs):
         if name.startswith(("monroe", "minimol", "grasp")):
             raise ModuleNotFoundError(name)
         return original_import(name, *args, **kwargs)
     monkeypatch.setattr(optional.importlib, "import_module", without_optional)
-    with pytest.raises(ImportError, match="optional.*README"):
+    def unexpected_checkpoint_resolution(*args, **kwargs):
+        pytest.fail("Monroe checkpoint resolution ran before required dependency validation")
+    monkeypatch.setattr(optional, "resolve_monroe_checkpoint", unexpected_checkpoint_resolution)
+    with pytest.raises(ImportError, match="Monroe is a required dependency"):
         optional.MonroeEmbedder(checkpoint_dir=tmp_path)
     monkeypatch.setattr(optional.torch.cuda, "is_available", lambda: False)
     optional._minimol_backend = None

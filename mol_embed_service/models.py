@@ -123,6 +123,12 @@ class ChemBERTaEmbedder(BaseEmbedder):
         self.model = AutoModel.from_pretrained(model_name, local_files_only=local_files_only).to(self.device)
         self.model.eval()
 
+    def encode_tensor(self, smiles_list):
+        """Return pooled representations without imposing a grad-mode policy."""
+        from .tensor_features import chemberta_features
+
+        return chemberta_features(self.model, self.tokenizer, smiles_list, self.device)
+
     def embed(self, smiles_list: List[str], batch_size: int) -> np.ndarray:
         """Generate embeddings using mean pooling of last hidden state."""
         embeddings = []
@@ -134,20 +140,7 @@ class ChemBERTaEmbedder(BaseEmbedder):
                 disable=not _in_interactive_terminal(),
             ):
                 batch = smiles_list[i : i + batch_size]
-                inputs = self.tokenizer(
-                    batch, padding=True, truncation=True, max_length=512, return_tensors="pt"
-                ).to(self.device)
-
-                outputs = self.model(**inputs)
-                # Mean pooling over sequence length
-                attention_mask = inputs["attention_mask"]
-                token_embeddings = outputs.last_hidden_state
-                input_mask_expanded = (
-                    attention_mask.unsqueeze(-1).expand(token_embeddings.size()).float()
-                )
-                sum_embeddings = torch.sum(token_embeddings * input_mask_expanded, 1)
-                sum_mask = torch.clamp(input_mask_expanded.sum(1), min=1e-9)
-                batch_embeddings = (sum_embeddings / sum_mask).cpu().numpy()
+                batch_embeddings = self.encode_tensor(batch).cpu().numpy()
 
                 embeddings.append(batch_embeddings)
 

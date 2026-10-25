@@ -1,4 +1,4 @@
-"""Lazy adapters for optional molecular embedding backends."""
+"""Lazy adapters for external molecular embedding backends."""
 
 import importlib
 import threading
@@ -61,17 +61,21 @@ def _dependency_error(name: str, install: str) -> ImportError:
     return ImportError(f"{name} is optional; install it using the instructions in the README ({install}).")
 
 
+def _required_monroe_error() -> ImportError:
+    return ImportError("Monroe is a required dependency; reinstall mol-embed-service to install it.")
+
+
 class MonroeEmbedder(BaseEmbedder):
     """Monroe encoder backed by a trusted local or verified managed checkpoint."""
 
     def __init__(self, device: str = "cuda", *, checkpoint_dir: str | Path | None = None):
         super().__init__(device)
-        self.checkpoint_dir = resolve_monroe_checkpoint(checkpoint_dir)
         try:
             embed_module = importlib.import_module("monroe.eval.embed")
             checkpoint_module = importlib.import_module("monroe.model.ckpt")
         except ImportError as exc:
-            raise _dependency_error("Monroe", "the pinned isolated installation") from exc
+            raise _required_monroe_error() from exc
+        self.checkpoint_dir = resolve_monroe_checkpoint(checkpoint_dir)
         self._embed_smiles = embed_module.embed_smiles
         self.encoder = checkpoint_module.load_ckpt(str(self.checkpoint_dir))
 
