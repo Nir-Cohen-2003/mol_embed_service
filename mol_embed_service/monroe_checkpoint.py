@@ -44,6 +44,18 @@ def _valid_managed_bundle(directory: Path) -> bool:
         return False
 
 
+def _is_html_download_page(path: Path) -> bool:
+    """Detect an HTML response saved in place of a local checkpoint."""
+    try:
+        with path.open("rb") as stream:
+            content = stream.read(8192).lstrip().lower()
+    except OSError:
+        return False
+    return content.startswith((b"<!doctype html", b"<html", b"<head", b"<body")) or (
+        b"<html" in content[:1024] and b"</html>" in content
+    )
+
+
 def _validate_local(directory: Path) -> Path:
     if not directory.is_dir():
         raise FileNotFoundError(f"Monroe checkpoint directory does not exist: {directory}")
@@ -53,6 +65,12 @@ def _validate_local(directory: Path) -> Path:
             raise FileNotFoundError(f"Monroe checkpoint requires readable, nonempty {path}")
         if is_lfs_pointer(path):
             raise ValueError(f"Monroe checkpoint {path} is a Git LFS pointer; fetch the actual file")
+        if name == "weights.pt" and _is_html_download_page(path):
+            raise ValueError(
+                f"Monroe checkpoint {path} contains an HTML download page, not the actual checkpoint. "
+                "Obtain the raw weights.pt artifact, or unset MONROE_CHECKPOINT_DIR to use the "
+                "verified managed download."
+            )
     try:
         with (directory / "config.json").open(encoding="utf-8") as stream:
             if not isinstance(json.load(stream), dict):

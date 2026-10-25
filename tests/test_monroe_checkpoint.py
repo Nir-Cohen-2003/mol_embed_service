@@ -26,6 +26,22 @@ def _fetcher(payloads):
     return fetch
 
 
+@pytest.mark.parametrize(
+    "page",
+    [b"<!DOCTYPE html><html><body>Not found</body></html>", b"<html><head>GitHub</head></html>"],
+)
+def test_local_html_weights_rejected_with_recovery_guidance(tmp_path, page):
+    directory = tmp_path / "monroe"
+    directory.mkdir()
+    (directory / "config.json").write_text("{}")
+    (directory / "weights.pt").write_bytes(page)
+
+    with pytest.raises(ValueError, match="HTML download page") as error:
+        resolve_checkpoint(directory)
+    assert "raw weights.pt" in str(error.value)
+    assert "unset MONROE_CHECKPOINT_DIR" in str(error.value)
+
+
 def test_constructor_environment_then_managed_cache_precedence(tmp_path, monkeypatch):
     explicit = tmp_path / "explicit"
     env = tmp_path / "env"

@@ -36,7 +36,6 @@ def _build_from_smiles_fallback(smi: str) -> dict[str, np.ndarray] | None:
 def build_mol(smi: str) -> dict[str, np.ndarray] | None:
     """Build molecular graph from SMILES."""
     try:
-        tqdm.write(f"[info] Building molecule graph for {smi[:50]}...")
         try:
             inchi = dm.to_inchi(smi)
         except Exception as exc:

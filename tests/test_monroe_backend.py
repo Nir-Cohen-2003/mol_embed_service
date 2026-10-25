@@ -10,7 +10,7 @@ from mol_embed_service._vendor.monroe.model import ckpt
 from mol_embed_service._vendor.monroe.preprocessing import build_eval_graphs
 
 
-def test_private_resource_and_graph_smoke():
+def test_private_resource_and_graph_smoke(capsys):
     from importlib.resources import files
 
     csv = files("mol_embed_service._vendor.monroe.assets").joinpath("periodic_table.csv")
@@ -19,6 +19,7 @@ def test_private_resource_and_graph_smoke():
     assert graph is not None
     assert graph["node_codes"].ndim == 2
     assert graph["edge_index"].shape[0] == 2
+    assert "[info] Building molecule graph" not in capsys.readouterr().out
 
 
 def test_featurization_falls_back_after_graph_builder_failure(monkeypatch):
