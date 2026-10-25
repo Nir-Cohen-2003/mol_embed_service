@@ -34,35 +34,36 @@ def test_registry_dimensions_and_unknown_model():
         public.get_embedding_size("unknown")
 
 
-def test_monroe_is_a_commit_pinned_required_install_dependency():
-    revision = "57238edfffea03808abe761a00cd9a75fa41bb95"
+def test_monroe_is_bundled_with_direct_runtime_dependencies():
     with open("pyproject.toml", encoding="utf-8") as stream:
         pyproject = stream.read()
     with open("pixi.toml", encoding="utf-8") as stream:
         pixi = stream.read()
-    assert f"monroe @ git+https://github.com/blazejba/Monroe.git@{revision}" in pyproject
-    assert f'rev = "{revision}"' in pixi
-    assert 'monroe = { git = "https://github.com/blazejba/Monroe.git"' in pixi
+    assert "monroe @ git+" not in pyproject
+    assert "monroe = { git =" not in pixi
+    assert '"datamol"' in pyproject and '"tqdm"' in pyproject
+    assert '"mol_embed_service._vendor.monroe.assets" = ["periodic_table.csv"]' in pyproject
+
 
 
 def _monroe(tmp_path, monkeypatch, output):
     (tmp_path / "config.json").write_text("{}")
     (tmp_path / "weights.pt").write_bytes(b"trusted mock")
     calls = {}
-    monroe = types.ModuleType("monroe")
+    monroe = types.ModuleType("mol_embed_service._vendor.monroe")
     monroe.__path__ = []
-    model = types.ModuleType("monroe.model")
+    model = types.ModuleType("mol_embed_service._vendor.monroe.model")
     model.__path__ = []
-    ckpt = types.ModuleType("monroe.model.ckpt")
+    ckpt = types.ModuleType("mol_embed_service._vendor.monroe.model.ckpt")
     ckpt.load_ckpt = lambda path: calls.setdefault("load", path) or object()
-    eval_pkg = types.ModuleType("monroe.eval")
+    eval_pkg = types.ModuleType("mol_embed_service._vendor.monroe.eval")
     eval_pkg.__path__ = []
-    embed = types.ModuleType("monroe.eval.embed")
+    embed = types.ModuleType("mol_embed_service._vendor.monroe.eval.embed")
     def helper(smiles, encoder, **kwargs):
         calls["helper"] = (smiles, encoder, kwargs)
         return output
     embed.embed_smiles = helper
-    for name, module in (("monroe", monroe), ("monroe.model", model), ("monroe.model.ckpt", ckpt), ("monroe.eval", eval_pkg), ("monroe.eval.embed", embed)):
+    for name, module in (("mol_embed_service._vendor.monroe", monroe), ("mol_embed_service._vendor.monroe.model", model), ("mol_embed_service._vendor.monroe.model.ckpt", ckpt), ("mol_embed_service._vendor.monroe.eval", eval_pkg), ("mol_embed_service._vendor.monroe.eval.embed", embed)):
         monkeypatch.setitem(sys.modules, name, module)
     return calls
 
@@ -163,14 +164,14 @@ def test_minimol_unsupported_device_and_concurrent_singleton(monkeypatch):
 def test_missing_backend_dependencies_have_actionable_errors(tmp_path, monkeypatch):
     original_import = optional.importlib.import_module
     def without_optional(name, *args, **kwargs):
-        if name.startswith(("monroe", "minimol", "grasp")):
+        if name.startswith(("mol_embed_service._vendor.monroe", "minimol", "grasp")):
             raise ModuleNotFoundError(name)
         return original_import(name, *args, **kwargs)
     monkeypatch.setattr(optional.importlib, "import_module", without_optional)
     def unexpected_checkpoint_resolution(*args, **kwargs):
         pytest.fail("Monroe checkpoint resolution ran before required dependency validation")
     monkeypatch.setattr(optional, "resolve_monroe_checkpoint", unexpected_checkpoint_resolution)
-    with pytest.raises(ImportError, match="Monroe is a required dependency"):
+    with pytest.raises(ImportError, match="bundled Monroe backend is missing"):
         optional.MonroeEmbedder(checkpoint_dir=tmp_path)
     monkeypatch.setattr(optional.torch.cuda, "is_available", lambda: False)
     optional._minimol_backend = None

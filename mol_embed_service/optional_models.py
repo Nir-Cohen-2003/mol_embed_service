@@ -62,7 +62,7 @@ def _dependency_error(name: str, install: str) -> ImportError:
 
 
 def _required_monroe_error() -> ImportError:
-    return ImportError("Monroe is a required dependency; reinstall mol-embed-service to install it.")
+    return ImportError("The bundled Monroe backend is missing; reinstall mol-embed-service.")
 
 
 class MonroeEmbedder(BaseEmbedder):
@@ -71,8 +71,8 @@ class MonroeEmbedder(BaseEmbedder):
     def __init__(self, device: str = "cuda", *, checkpoint_dir: str | Path | None = None):
         super().__init__(device)
         try:
-            embed_module = importlib.import_module("monroe.eval.embed")
-            checkpoint_module = importlib.import_module("monroe.model.ckpt")
+            embed_module = importlib.import_module("mol_embed_service._vendor.monroe.eval.embed")
+            checkpoint_module = importlib.import_module("mol_embed_service._vendor.monroe.model.ckpt")
         except ImportError as exc:
             raise _required_monroe_error() from exc
         self.checkpoint_dir = resolve_monroe_checkpoint(checkpoint_dir)

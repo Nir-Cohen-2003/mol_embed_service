@@ -1,1 +1,2 @@
 include THIRD_PARTY_NOTICES.md
+recursive-include mol_embed_service/_vendor/monroe *.py *.csv LICENSE NOTICE PROVENANCE.md

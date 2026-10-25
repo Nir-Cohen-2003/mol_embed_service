@@ -496,20 +496,8 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/xarray-2026.7.0-pyhc364b38_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/xlsxwriter-3.2.9-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/zipp-4.1.0-pyhcf101f3_0.conda
-      - conda_source: mol-embed-service[65fe4699] @ .
-      - pypi: git+https://github.com/blazejba/Monroe.git?rev=57238edfffea03808abe761a00cd9a75fa41bb95#57238edfffea03808abe761a00cd9a75fa41bb95
-      - pypi: https://files.pythonhosted.org/packages/04/69/6af86ff66492b481c6a4c05dcfd68beb47ed8ba046440a26a2aac76b95c7/opentelemetry_exporter_http_transport-0.66b1-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/12/b3/231ffd4ab1fc9d679809f356cebee130ac7daa00d6d6f3206dd4fd137e9e/distro-1.9.0-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/1e/41/f7dcf80b81ee8e71c1a2b59f14208bc723edbd89ed027a73b175abf6348e/opentelemetry_api-1.45.1-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/2a/07/5594faeaea9440be2ea01cee692573416b3997879df67f0e940bfbfc2d26/wandb-0.31.0-py3-none-manylinux_2_28_x86_64.whl
+      - conda_source: mol-embed-service[11703e60] @ .
       - pypi: https://files.pythonhosted.org/packages/7b/5f/5083839133347454e3ea74f416a7d250b7e753aa460f1cd72116efbea4db/smirk-0.3.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
-      - pypi: https://files.pythonhosted.org/packages/84/aa/92f225d353904e7f70b8b3e3c1b02db0cf56f744c2e83c581dc372e78873/opentelemetry_exporter_otlp_proto_common-1.45.1-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/95/3c/87c42b4bd6dd297536f04cd9383d212ac557ecd49f2cbdcd46da1c9ef5c8/opentelemetry_sdk-1.45.1-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/aa/1f/517eaa0187ba106a9da97160ce2add3a371812681dc440930b267f714e42/opentelemetry_exporter_otlp_proto_http-1.45.1-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/ab/9a/42ec8180a769516ae757e893b69736826efceac7332553915b4528a91c6d/opentelemetry_proto-1.45.1-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/b5/96/b3b348954f88915e60e2f1fbe6d09250584e53a20d949e55786f31dbaeb0/cwevals-0.0.1b1-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/bc/14/67f8aa798857f8cf686f515bf93d9bb877ce952ddc8efae0fa25b45ce0d6/opentelemetry_semantic_conventions-0.66b1-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/fc/39/8c23d67665c762aa51840fa06f86e902e8f6f1693bc8d7e3d98cd6e2f753/opentelemetry_exporter_otlp_common-0.66b1-py3-none-any.whl
       linux-64-cuda-13-0:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/_openmp_mutex-4.5-8_kmp_llvm.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/aiohttp-3.14.5-py312h8b7ec3f_0.conda
@@ -987,20 +975,8 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/xarray-2026.7.0-pyhc364b38_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/xlsxwriter-3.2.9-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/zipp-4.1.0-pyhcf101f3_0.conda
-      - conda_source: mol-embed-service[65fe4699] @ .
-      - pypi: git+https://github.com/blazejba/Monroe.git?rev=57238edfffea03808abe761a00cd9a75fa41bb95#57238edfffea03808abe761a00cd9a75fa41bb95
-      - pypi: https://files.pythonhosted.org/packages/04/69/6af86ff66492b481c6a4c05dcfd68beb47ed8ba046440a26a2aac76b95c7/opentelemetry_exporter_http_transport-0.66b1-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/12/b3/231ffd4ab1fc9d679809f356cebee130ac7daa00d6d6f3206dd4fd137e9e/distro-1.9.0-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/1e/41/f7dcf80b81ee8e71c1a2b59f14208bc723edbd89ed027a73b175abf6348e/opentelemetry_api-1.45.1-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/2a/07/5594faeaea9440be2ea01cee692573416b3997879df67f0e940bfbfc2d26/wandb-0.31.0-py3-none-manylinux_2_28_x86_64.whl
+      - conda_source: mol-embed-service[11703e60] @ .
       - pypi: https://files.pythonhosted.org/packages/7b/5f/5083839133347454e3ea74f416a7d250b7e753aa460f1cd72116efbea4db/smirk-0.3.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
-      - pypi: https://files.pythonhosted.org/packages/84/aa/92f225d353904e7f70b8b3e3c1b02db0cf56f744c2e83c581dc372e78873/opentelemetry_exporter_otlp_proto_common-1.45.1-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/95/3c/87c42b4bd6dd297536f04cd9383d212ac557ecd49f2cbdcd46da1c9ef5c8/opentelemetry_sdk-1.45.1-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/aa/1f/517eaa0187ba106a9da97160ce2add3a371812681dc440930b267f714e42/opentelemetry_exporter_otlp_proto_http-1.45.1-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/ab/9a/42ec8180a769516ae757e893b69736826efceac7332553915b4528a91c6d/opentelemetry_proto-1.45.1-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/b5/96/b3b348954f88915e60e2f1fbe6d09250584e53a20d949e55786f31dbaeb0/cwevals-0.0.1b1-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/bc/14/67f8aa798857f8cf686f515bf93d9bb877ce952ddc8efae0fa25b45ce0d6/opentelemetry_semantic_conventions-0.66b1-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/fc/39/8c23d67665c762aa51840fa06f86e902e8f6f1693bc8d7e3d98cd6e2f753/opentelemetry_exporter_otlp_common-0.66b1-py3-none-any.whl
 packages:
 - conda: https://conda.anaconda.org/conda-forge/linux-64/_openmp_mutex-4.5-20_gnu.conda
   build_number: 20
@@ -9541,14 +9517,16 @@ packages:
   run_exports: {}
   size: 24190
   timestamp: 1779159948016
-- conda_source: mol-embed-service[65fe4699] @ .
+- conda_source: mol-embed-service[11703e60] @ .
   variants:
     target_platform: noarch
   depends:
   - chemprop >=2.2
+  - datamol
   - molfeat
   - numpy >=1.24
   - onnxruntime
+  - pandas >=2.0
   - python *
   - python >=3.10
   - python >=3.10,<3.14
@@ -9558,6 +9536,7 @@ packages:
   - rdkit >=2023.9
   - safetensors
   - sentencepiece >=0.1.99
+  - tqdm
   - transformers >=4.50.3,<5
   license: MIT
   host_packages:
@@ -9587,123 +9566,6 @@ packages:
   - conda: https://conda.anaconda.org/conda-forge/noarch/setuptools-84.2.1-pyhe730653_0.conda
   - conda: https://conda.anaconda.org/conda-forge/noarch/tzdata-2026e-h5d301ff_0.conda
   - conda: https://conda.anaconda.org/conda-forge/noarch/wheel-0.48.0-pyhd8ed1ab_0.conda
-- pypi: git+https://github.com/blazejba/Monroe.git?rev=57238edfffea03808abe761a00cd9a75fa41bb95#57238edfffea03808abe761a00cd9a75fa41bb95
-  name: monroe
-  version: 0.1.0
-  requires_dist:
-  - torch
-  - torch-geometric
-  - rdkit
-  - numpy
-  - pandas
-  - datamol
-  - scipy
-  - scikit-learn
-  - tqdm
-  - wandb
-  - matplotlib
-  - pyarrow
-  - duckdb ; extra == 'preprocessing'
-  - datasets ; extra == 'preprocessing'
-  - polaris-lib ; extra == 'eval'
-  - tabpfn==8.3.0 ; extra == 'eval'
-  - moleculeace ; extra == 'eval'
-  - transformers ; extra == 'eval'
-  - tensorflow ; extra == 'eval'
-  - joblib ; extra == 'eval'
-  - lightgbm ; extra == 'eval'
-  - pytest ; extra == 'test'
-  - ruff ; extra == 'dev'
-  requires_python: '>=3.10'
-- pypi: https://files.pythonhosted.org/packages/04/69/6af86ff66492b481c6a4c05dcfd68beb47ed8ba046440a26a2aac76b95c7/opentelemetry_exporter_http_transport-0.66b1-py3-none-any.whl
-  name: opentelemetry-exporter-http-transport
-  version: 0.66b1
-  sha256: 2f95404bdee7f9d2d529c7de56c7bd86d014d774d8fbf137810e0167f8a492bf
-  requires_dist:
-  - opentelemetry-api~=1.15
-  - requests~=2.25 ; extra == 'requests'
-  - urllib3>=1.26 ; extra == 'urllib3'
-  requires_python: '>=3.10'
-- pypi: https://files.pythonhosted.org/packages/12/b3/231ffd4ab1fc9d679809f356cebee130ac7daa00d6d6f3206dd4fd137e9e/distro-1.9.0-py3-none-any.whl
-  name: distro
-  version: 1.9.0
-  sha256: 7bffd925d65168f85027d8da9af6bddab658135b840670a223589bc0c8ef02b2
-  requires_python: '>=3.6'
-- pypi: https://files.pythonhosted.org/packages/1e/41/f7dcf80b81ee8e71c1a2b59f14208bc723edbd89ed027a73b175abf6348e/opentelemetry_api-1.45.1-py3-none-any.whl
-  name: opentelemetry-api
-  version: 1.45.1
-  sha256: b31553efa588ae44bc306f863c785c5333a9ecc091248c6ee68b4b6c87fdedfb
-  requires_dist:
-  - typing-extensions>=4.5.0
-  requires_python: '>=3.10'
-- pypi: https://files.pythonhosted.org/packages/2a/07/5594faeaea9440be2ea01cee692573416b3997879df67f0e940bfbfc2d26/wandb-0.31.0-py3-none-manylinux_2_28_x86_64.whl
-  name: wandb
-  version: 0.31.0
-  sha256: 009bcf370598d5e7a3d3bb66e33510f78c17fcc0505f8aa7ecf51dbc4378f979
-  requires_dist:
-  - click>=8.2.0
-  - cwevals==0.0.1b1
-  - opentelemetry-api>=1.43.0
-  - opentelemetry-exporter-otlp-proto-http>=1.43.0
-  - opentelemetry-sdk>=1.43.0
-  - packaging
-  - platformdirs
-  - protobuf>=5,!=5.28.0,!=5.29.0,<8
-  - pydantic>=2.6,<3
-  - pyyaml
-  - requests>=2.0.0,<3
-  - typing-extensions>=4.8,<5
-  - xxhash>=3.0.0
-  - boto3 ; extra == 'aws'
-  - botocore>=1.5.76 ; extra == 'aws'
-  - ax-platform>=1.3.1 ; python_full_version >= '3.11' and extra == 'ax'
-  - azure-identity ; extra == 'azure'
-  - azure-storage-blob ; extra == 'azure'
-  - weave>=0.52.41 ; extra == 'eval-table'
-  - weave[video-support]>=0.52.41 ; extra == 'eval-table-video-support'
-  - google-cloud-storage ; extra == 'gcp'
-  - google-cloud-storage ; extra == 'kubeflow'
-  - kubernetes ; extra == 'kubeflow'
-  - minio ; extra == 'kubeflow'
-  - sh ; extra == 'kubeflow'
-  - awscli ; extra == 'launch'
-  - azure-containerregistry ; extra == 'launch'
-  - azure-identity ; extra == 'launch'
-  - azure-storage-blob ; extra == 'launch'
-  - boto3 ; extra == 'launch'
-  - botocore>=1.5.76 ; extra == 'launch'
-  - chardet ; extra == 'launch'
-  - google-auth ; extra == 'launch'
-  - google-cloud-aiplatform ; extra == 'launch'
-  - google-cloud-artifact-registry ; extra == 'launch'
-  - google-cloud-compute ; extra == 'launch'
-  - google-cloud-storage ; extra == 'launch'
-  - iso8601 ; extra == 'launch'
-  - jsonschema ; extra == 'launch'
-  - kubernetes ; extra == 'launch'
-  - kubernetes-asyncio ; extra == 'launch'
-  - nbconvert ; extra == 'launch'
-  - nbformat ; extra == 'launch'
-  - optuna ; extra == 'launch'
-  - pydantic ; extra == 'launch'
-  - pyyaml>=6.0.0 ; extra == 'launch'
-  - tomli ; extra == 'launch'
-  - tornado>=6.5.0 ; extra == 'launch'
-  - typing-extensions ; extra == 'launch'
-  - bokeh ; extra == 'media'
-  - imageio>=2.28.1 ; extra == 'media'
-  - moviepy>=1.0.0 ; extra == 'media'
-  - numpy ; extra == 'media'
-  - pillow ; extra == 'media'
-  - plotly>=5.18.0 ; extra == 'media'
-  - rdkit ; extra == 'media'
-  - soundfile ; extra == 'media'
-  - cloudpickle ; extra == 'models'
-  - optuna>=4.0.0 ; extra == 'optuna'
-  - cwsandbox[cli]>=1.0.0 ; python_full_version >= '3.11' and extra == 'sandbox'
-  - sweeps>=0.2.0 ; extra == 'sweeps'
-  - wandb-workspaces ; extra == 'workspaces'
-  requires_python: '>=3.10'
 - pypi: https://files.pythonhosted.org/packages/7b/5f/5083839133347454e3ea74f416a7d250b7e753aa460f1cd72116efbea4db/smirk-0.3.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
   name: smirk
   version: 0.3.0
@@ -9711,75 +9573,3 @@ packages:
   requires_dist:
   - transformers>=4.40,<5
   requires_python: '>=3.9'
-- pypi: https://files.pythonhosted.org/packages/84/aa/92f225d353904e7f70b8b3e3c1b02db0cf56f744c2e83c581dc372e78873/opentelemetry_exporter_otlp_proto_common-1.45.1-py3-none-any.whl
-  name: opentelemetry-exporter-otlp-proto-common
-  version: 1.45.1
-  sha256: 2f446183ae7047b036226f1d846c41a834b0e8755ad13b51a51dd38952eb466c
-  requires_dist:
-  - opentelemetry-proto==1.45.1
-  requires_python: '>=3.10'
-- pypi: https://files.pythonhosted.org/packages/95/3c/87c42b4bd6dd297536f04cd9383d212ac557ecd49f2cbdcd46da1c9ef5c8/opentelemetry_sdk-1.45.1-py3-none-any.whl
-  name: opentelemetry-sdk
-  version: 1.45.1
-  sha256: c604c11dc429810812348989115fa44bd558772a3d7442afc43d024f2c250ca4
-  requires_dist:
-  - opentelemetry-api==1.45.1
-  - opentelemetry-semantic-conventions==0.66b1
-  - typing-extensions>=4.5.0
-  - opentelemetry-configuration==0.66b1 ; extra == 'file-configuration'
-  requires_python: '>=3.10'
-- pypi: https://files.pythonhosted.org/packages/aa/1f/517eaa0187ba106a9da97160ce2add3a371812681dc440930b267f714e42/opentelemetry_exporter_otlp_proto_http-1.45.1-py3-none-any.whl
-  name: opentelemetry-exporter-otlp-proto-http
-  version: 1.45.1
-  sha256: 24a97cf3753c7fb52fad44a696e452ff371686339e2acf3309e2eda3d0230700
-  requires_dist:
-  - googleapis-common-protos~=1.52
-  - opentelemetry-api~=1.15
-  - opentelemetry-exporter-http-transport[requests]==0.66b1
-  - opentelemetry-exporter-otlp-common==0.66b1
-  - opentelemetry-exporter-otlp-proto-common==1.45.1
-  - opentelemetry-proto==1.45.1
-  - opentelemetry-sdk~=1.45.1
-  - requests~=2.7
-  - typing-extensions>=4.5.0
-  - opentelemetry-exporter-credential-provider-gcp>=0.59b0 ; extra == 'gcp-auth'
-  - opentelemetry-exporter-http-transport[requests]==0.66b1 ; extra == 'requests'
-  - requests~=2.7 ; extra == 'requests'
-  requires_python: '>=3.10'
-- pypi: https://files.pythonhosted.org/packages/ab/9a/42ec8180a769516ae757e893b69736826efceac7332553915b4528a91c6d/opentelemetry_proto-1.45.1-py3-none-any.whl
-  name: opentelemetry-proto
-  version: 1.45.1
-  sha256: f38e2a8413053c180cd3d2637fbb279673ec2f6a6e09c995aafa2f452c52b46e
-  requires_dist:
-  - protobuf>=5.0,<8.0
-  requires_python: '>=3.10'
-- pypi: https://files.pythonhosted.org/packages/b5/96/b3b348954f88915e60e2f1fbe6d09250584e53a20d949e55786f31dbaeb0/cwevals-0.0.1b1-py3-none-any.whl
-  name: cwevals
-  version: 0.0.1b1
-  sha256: 6936baf0ccdc5d9092abd5c2ab628cedcdae9bb72edfdf730f7aaac19118855a
-  requires_dist:
-  - anyio>=3.5.0,<5
-  - distro>=1.7.0,<2
-  - httpx>=0.23.0,<1
-  - pydantic>=1.9.0,<3
-  - sniffio
-  - typing-extensions>=4.14,<5
-  - aiohttp ; extra == 'aiohttp'
-  - httpx-aiohttp>=0.1.9 ; extra == 'aiohttp'
-  requires_python: '>=3.9'
-- pypi: https://files.pythonhosted.org/packages/bc/14/67f8aa798857f8cf686f515bf93d9bb877ce952ddc8efae0fa25b45ce0d6/opentelemetry_semantic_conventions-0.66b1-py3-none-any.whl
-  name: opentelemetry-semantic-conventions
-  version: 0.66b1
-  sha256: d4cddeb4315490b35213f55e2bdc9ac54bb1e4d318927475bed62b35545e581b
-  requires_dist:
-  - opentelemetry-api==1.45.1
-  - typing-extensions>=4.5.0
-  requires_python: '>=3.10'
-- pypi: https://files.pythonhosted.org/packages/fc/39/8c23d67665c762aa51840fa06f86e902e8f6f1693bc8d7e3d98cd6e2f753/opentelemetry_exporter_otlp_common-0.66b1-py3-none-any.whl
-  name: opentelemetry-exporter-otlp-common
-  version: 0.66b1
-  sha256: 00ff8592c3a7cb729ff3fdc7ffa12372c243bdf2163e80c180994d0c7bd83ee9
-  requires_dist:
-  - opentelemetry-sdk~=1.45.1
-  - opentelemetry-exporter-http-transport==0.66b1 ; extra == 'http'
-  requires_python: '>=3.10'

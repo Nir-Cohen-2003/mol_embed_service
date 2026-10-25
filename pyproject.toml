@@ -25,7 +25,8 @@ dependencies = [
     "filelock>=3.12",
     "huggingface-hub>=0.30,<1",
     "pandas>=2.0",
-    "monroe @ git+https://github.com/blazejba/Monroe.git@57238edfffea03808abe761a00cd9a75fa41bb95",
+    "datamol",
+    "tqdm",
 ]
 
 [project.optional-dependencies]
@@ -34,6 +35,10 @@ dev = ["pytest>=7.4", "black>=23.0", "ruff>=0.1"]
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["mol_embed_service*"]
+
+[tool.setuptools.package-data]
+"mol_embed_service._vendor.monroe.assets" = ["periodic_table.csv"]
+"mol_embed_service._vendor.monroe" = ["LICENSE", "NOTICE", "PROVENANCE.md"]
 
 [tool.setuptools.data-files]
 "share/doc/mol-embed-service" = ["THIRD_PARTY_NOTICES.md"]

@@ -23,3 +23,7 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+## Monroe inference implementation
+
+The private inference subset in `mol_embed_service/_vendor/monroe` is derived from Monroe, revision `57238edfffea03808abe761a00cd9a75fa41bb95` (https://github.com/blazejba/Monroe). The complete upstream MIT `LICENSE` and `NOTICE` are included alongside the vendored implementation. The separately distributed model checkpoint is not included in this package.
